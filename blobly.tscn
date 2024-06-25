@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cgl6o5xk0bman"]
+
+[ext_resource type="PackedScene" uid="uid://niek8sp2h33q" path="res://agent/blobly.tscn" id="1_qdbn5"]
+
+[node name="Blobly" instance=ExtResource("1_qdbn5")]
+
+[node name="Sprite2D" parent="." index="0"]
+position = Vector2(0, 0)
+offset = Vector2(2.08165e-12, 2.08165e-12)
