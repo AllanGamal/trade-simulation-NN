@@ -7,7 +7,7 @@ public partial class blobly : CharacterBody2D
 {
 	[Export]
 	public Vector2 nextPosition = new Vector2();
-	public static int Speed { get; set; } = 2200;
+	public static int Speed { get; set; } = 1200;
 	public Locations locations = new Locations();
 
 	// resources
@@ -16,7 +16,7 @@ public partial class blobly : CharacterBody2D
 	private int _wood = 100;
 	private int _fishingHooks = 100;
 	private int _rawFish = 100;
-	private float _cookedFish = 100;
+	private float _cookedFish = 200;
 
 	// skills
 	private float _skillCooking = 0;
@@ -32,7 +32,7 @@ public partial class blobly : CharacterBody2D
 
 	private static List<blobly> allInstances = new List<blobly>();
 
-	// Resten av din existerande kod...
+	
 
 	public blobly()
 	{
@@ -44,67 +44,67 @@ public partial class blobly : CharacterBody2D
 		allInstances.Remove(this);
 	}
 
-	
 
-public void Eat(float m)
-{
-	Hunger -= m;
-	if (CookedFish > 0 && Hunger < 100)
+
+	public void Eat(float m)
 	{
-		float rest = 100 - Hunger;
-		float eatAmount = Math.Min(CookedFish, rest / m); 
+		Hunger -= m;
+		if (CookedFish > 0 && Hunger < 100)
+		{
+			float rest = 100 - Hunger;
+			float eatAmount = Math.Min(CookedFish, rest / m);
 
-		Hunger += eatAmount * m;
-		CookedFish -= eatAmount;
+			Hunger += eatAmount * m;
+			CookedFish -= eatAmount;
 
-		// Säkerställ att Hunger inte överstiger 100
-		Hunger = Math.Min(Hunger, 100);
-		
+			// Säkerställ att Hunger inte överstiger 100
+			Hunger = Math.Min(Hunger, 100);
+
+		}
 	}
-}
 
 	public static void Get_resources(ref int target, ref float skill, int m)
-{
-	if (target < 1000)
 	{
-		target += 1*(1+(int)Math.Floor(skill))*m;
-		if (skill < 5)
+		if (target < 1000)
 		{
-			skill += 0.001f;
+			target += 1 * (1 + (int)Math.Floor(skill)) * m;
+			if (skill < 5)
+			{
+				skill += 0.001f;
+			}
 		}
 	}
-}
 
-public static void Get_resources(ref float target, ref float skill, int m)
-{
-	if (target < 1000)
+	public static void Get_resources(ref float target, ref float skill, int m)
 	{
-		target += 1*(1+skill)*m;
-		if (skill < 5)
+		if (target < 1000)
 		{
-			skill += 0.001f;
+			target += 1 * (1 + skill) * m;
+			if (skill < 5)
+			{
+				skill += 0.001f;
+			}
 		}
 	}
-}
 
-public static void Get_resources(ref float target, ref float skill, float m)
-{
-	if (target < 1000)
+	public static void Get_resources(ref float target, ref float skill, float m)
 	{
-		float increase = 1 * (1 + skill) * m;
-		target += increase;
-
-		if (skill < 5)
+		if (target < 1000)
 		{
-			skill += 0.001f;
+			float increase = 1 * (1 + skill) * m;
+			target += increase;
+
+			if (skill < 5)
+			{
+				skill += 0.001f;
+			}
 		}
 	}
-}
 
-public static void Use_resource(ref int resource, int m)
-{
-	resource -= m;
-}
+	public static void Use_resource(ref int resource, int m)
+	{
+		resource -= m;
+	}
 
 	// Användningsexempel:
 	public void Chop_tree()
@@ -135,7 +135,7 @@ public static void Use_resource(ref int resource, int m)
 			Craft_fishing_hooks();
 			return;
 		}
-		Use_resource(ref _fishingHooks, 4);
+		Use_resource(ref _fishingHooks, 3);
 		Get_resources(ref _rawFish, ref _skillFishing, 1);
 		Eat(1.1f);
 	}
@@ -151,30 +151,30 @@ public static void Use_resource(ref int resource, int m)
 		Use_resource(ref _wood, 1);
 		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 1);
 		Eat(1.1f);
-		
+
 	}
 	public void Cook()
-{
-	nextPosition = locations.get_position_kitchen();
-	if (Raw_fish < 5 || Wood < 9)
 	{
-		if (Raw_fish < 5)
+		nextPosition = locations.get_position_kitchen();
+		if (Raw_fish < 6 || Wood < 9)
 		{
-			Fish();
+			if (Raw_fish < 6)
+			{
+				Fish();
+			}
+			if (Wood < 8)
+			{
+				Chop_wood();
+			}
+			return;
 		}
-		if (Wood < 8)
-		{
-			Chop_wood();
-		}
-		return;
+
+		Use_resource(ref _rawFish, 6);
+		Use_resource(ref _wood, 9);
+		Get_resources(ref _cookedFish, ref _skillCooking, 5f);
+		Eat(1.1f);
+
 	}
-	
-	Use_resource(ref _rawFish, 6);
-	Use_resource(ref _wood, 9);
-	Get_resources(ref _cookedFish, ref _skillCooking, 4f);
-	Eat(1.1f);
-	
-}
 
 	public int Shopped_tree
 	{
@@ -287,6 +287,155 @@ public static void Use_resource(ref int resource, int m)
 		return totalCookedFish / allInstances.Count;
 	}
 
+	public static float GetPopulationSize()
+	{
+		return allInstances.Count;
+	}
+
+	public static float GetAverageOfCookedFishOfTheLowest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var lowest10PercentInstances = allInstances.OrderBy(b => b.CookedFish).Take(lowest10Percent);
+		float totalCookedFish = lowest10PercentInstances.Sum(b => b.CookedFish);
+		return totalCookedFish / lowest10Percent;
+	}
+
+	public static float GetAverageOfCookedFishOfTheHighest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var highest10PercentInstances = allInstances.OrderByDescending(b => b.CookedFish).Take(highest10Percent);
+		float totalCookedFish = highest10PercentInstances.Sum(b => b.CookedFish);
+		return totalCookedFish / highest10Percent;
+	}
+
+	public static float GetAverageOfRawFishOfTheLowest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var lowest10PercentInstances = allInstances.OrderBy(b => b.Raw_fish).Take(lowest10Percent);
+		float totalRawFish = lowest10PercentInstances.Sum(b => b.Raw_fish);
+		return totalRawFish / lowest10Percent;
+	}
+
+	public static float GetAverageOfRawFishOfTheHighest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Raw_fish).Take(highest10Percent);
+		float totalRawFish = highest10PercentInstances.Sum(b => b.Raw_fish);
+		return totalRawFish / highest10Percent;
+	}
+
+	/*
+	private float _hunger = 100;
+	private int _shoppedTree = 40;
+	private int _wood = 100;
+	private int _fishingHooks = 100;*/
+
+	public static float GetAverageOfHungerOfTheLowest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var lowest10PercentInstances = allInstances.OrderBy(b => b.Hunger).Take(lowest10Percent);
+		float totalHunger = lowest10PercentInstances.Sum(b => b.Hunger);
+		return totalHunger / lowest10Percent;
+	}
+
+	public static float GetAverageOfHungerOfTheHighest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Hunger).Take(highest10Percent);
+		float totalHunger = highest10PercentInstances.Sum(b => b.Hunger);
+		return totalHunger / highest10Percent;
+	}
+
+	public static float GetAverageOfShoppedTreeOfTheLowest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var lowest10PercentInstances = allInstances.OrderBy(b => b.Shopped_tree).Take(lowest10Percent);
+		float totalShoppedTree = lowest10PercentInstances.Sum(b => b.Shopped_tree);
+		return totalShoppedTree / lowest10Percent;
+	}
+
+	public static float GetAverageOfShoppedTreeOfTheHighest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Shopped_tree).Take(highest10Percent);
+		float totalShoppedTree = highest10PercentInstances.Sum(b => b.Shopped_tree);
+		return totalShoppedTree / highest10Percent;
+	}
+
+	public static float GetAverageOfWoodOfTheLowest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var lowest10PercentInstances = allInstances.OrderBy(b => b.Wood).Take(lowest10Percent);
+		float totalWood = lowest10PercentInstances.Sum(b => b.Wood);
+		return totalWood / lowest10Percent;
+	}
+
+	public static float GetAverageOfWoodOfTheHighest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Wood).Take(highest10Percent);
+		float totalWood = highest10PercentInstances.Sum(b => b.Wood);
+		return totalWood / highest10Percent;
+	}
+
+	public static float GetAverageOfFishingHooksOfTheLowest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var lowest10PercentInstances = allInstances.OrderBy(b => b.Fishing_hooks).Take(lowest10Percent);
+		float totalFishingHooks = lowest10PercentInstances.Sum(b => b.Fishing_hooks);
+		return totalFishingHooks / lowest10Percent;
+	}
+
+	public static float GetAverageOfFishingHooksOfTheHighest10Percent()
+	{
+		if (allInstances.Count == 0)
+			return 0;
+
+		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Fishing_hooks).Take(highest10Percent);
+		float totalFishingHooks = highest10PercentInstances.Sum(b => b.Fishing_hooks);
+		return totalFishingHooks / highest10Percent;
+	}
+
+
+
+	
+	
+	
+
 
 
 
@@ -347,8 +496,8 @@ public static void Use_resource(ref int resource, int m)
 			actions[rand.Next(actions.Count)]();
 			actions[rand.Next(actions.Count)]();
 			actions[rand.Next(actions.Count)]();
-			
-		
+
+
 
 
 			clickPosition = nextPosition;
