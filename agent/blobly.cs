@@ -16,7 +16,7 @@ public partial class blobly : CharacterBody2D
 	private int _wood = 100;
 	private int _fishingHooks = 100;
 	private int _rawFish = 100;
-	private float _cookedFish = 200;
+	private float _cookedFish = 500;
 
 	// skills
 	private float _skillCooking = 0;
@@ -24,6 +24,36 @@ public partial class blobly : CharacterBody2D
 	private float _skillChoppingWood = 0;
 	private float _skillFishing = 0;
 	private float _skillCraftFishingHooks = 0;
+	private Sprite2D sprite;
+
+
+	// change color of the blobly based on its hunger
+// Assuming 'Hunger' is a value between 0 and 1
+// and there's a method or update loop calling this method repeatedly
+public void ChangeColor()
+{
+  if (sprite == null)
+  {
+		sprite = GetNode<Sprite2D>("Sprite2D");
+	}
+
+  // Define color based on hunger level (0 to 1)
+  
+  float hungerRatio = (100-Hunger) / 220.0f;
+
+  Color targetColor;
+
+  // Green to White (0 to 0.5)
+  
+	 float ratio = hungerRatio * 2.0f; // Stretch range for green and white
+	targetColor = new Color(0.0f + ratio, 1.0f - ratio, 0.0f); // Green -> White
+  
+ 
+
+  sprite.Modulate = targetColor;
+}
+
+
 
 
 	private AnimationPlayer animations;
@@ -230,7 +260,10 @@ public partial class blobly : CharacterBody2D
 	public float Hunger
 	{
 		get => _hunger;
-		set => _hunger = value;
+		set {{
+		_hunger = value;
+		ChangeColor(); // Update color when hunger changes
+	}}
 	}
 
 	public static float GetAverageHunger()
@@ -441,7 +474,9 @@ public partial class blobly : CharacterBody2D
 
 	public override void _Ready()
 	{
-		animations = GetNode<AnimationPlayer>("Sprite2D/AnimationPlayer");
+		sprite = GetNode<Sprite2D>("Sprite2D");
+	ChangeColor();
+	animations = GetNode<AnimationPlayer>("Sprite2D/AnimationPlayer");
 	}
 
 
@@ -504,13 +539,8 @@ public partial class blobly : CharacterBody2D
 			// print the position
 			//GD.Print(clickPosition);
 			// print the wood
-			GD.Print("------------------------------------------------------------------");
-			GD.Print("Average Hunger:" + GetAverageHunger());
-			GD.Print("Average Fishing Hooks:" + GetAverageFishingHooks());
-			GD.Print("Average Shopped Tree:" + GetAverageShoppedTree());
-			GD.Print("Average Wood:" + GetAverageWood());
-			GD.Print("Average Raw Fish:" + GetAverageRawFish());
-			GD.Print("Average Cooked Fish:" + GetAverageCookedFish());
+		
+			
 
 		}
 
