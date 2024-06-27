@@ -119,6 +119,7 @@ public partial class chart : Node2D
 		}
 	}
 
+
 	public void UpdateGraph(params float[] newValues)
 	{
 		while (multiValues.Count < newValues.Length)

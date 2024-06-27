@@ -12,10 +12,10 @@ public partial class blobly : CharacterBody2D
 
 	// resources
 	private float _hunger = 100;
-	private int _shoppedTree = 40;
-	private int _wood = 100;
-	private int _fishingHooks = 100;
-	private int _rawFish = 100;
+	private float _shoppedTree = 40;
+	private float _wood = 100;
+	private float _fishingHooks = 100;
+	private float _rawFish = 100;
 	private float _cookedFish = 500;
 
 	// skills
@@ -27,31 +27,23 @@ public partial class blobly : CharacterBody2D
 	private Sprite2D sprite;
 
 
-	// change color of the blobly based on its hunger
-// Assuming 'Hunger' is a value between 0 and 1
-// and there's a method or update loop calling this method repeatedly
-public void ChangeColor()
-{
-  if (sprite == null)
-  {
-		sprite = GetNode<Sprite2D>("Sprite2D");
+	public void ChangeColor()
+	{
+		if (sprite == null)
+		{
+			sprite = GetNode<Sprite2D>("Sprite2D");
+		}
+
+		float hungerRatio = (100 - Hunger) / 220.0f;
+
+		Color targetColor;
+
+		float ratio = hungerRatio * 2.0f;
+		targetColor = new Color(0.0f + ratio, 1.0f - ratio, 0.0f); // green -> red
+
+
+		sprite.Modulate = targetColor;
 	}
-
-  // Define color based on hunger level (0 to 1)
-  
-  float hungerRatio = (100-Hunger) / 220.0f;
-
-  Color targetColor;
-
-  // Green to White (0 to 0.5)
-  
-	 float ratio = hungerRatio * 2.0f; // Stretch range for green and white
-	targetColor = new Color(0.0f + ratio, 1.0f - ratio, 0.0f); // Green -> White
-  
- 
-
-  sprite.Modulate = targetColor;
-}
 
 
 
@@ -62,7 +54,7 @@ public void ChangeColor()
 
 	private static List<blobly> allInstances = new List<blobly>();
 
-	
+
 
 	public blobly()
 	{
@@ -87,61 +79,42 @@ public void ChangeColor()
 			Hunger += eatAmount * m;
 			CookedFish -= eatAmount;
 
-			// Säkerställ att Hunger inte överstiger 100
+			// hunger no more than 100
 			Hunger = Math.Min(Hunger, 100);
 
 		}
 	}
 
-	public static void Get_resources(ref int target, ref float skill, int m)
+	public static void Get_resources<T, U>(ref T target, ref float skill, U m) where T : struct where U : struct
 	{
-		if (target < 1000)
+		dynamic targetValue = target;
+		dynamic mValue = m;
+
+		if (targetValue < 1000)
 		{
-			target += 1 * (1 + (int)Math.Floor(skill)) * m;
+			float totalIncrease = (1 + skill) * mValue;
+
+			targetValue += totalIncrease;
+
+			target = (T)targetValue;
+
 			if (skill < 5)
 			{
-				skill += 0.001f;
+				skill += 0.007f;
 			}
 		}
 	}
 
-	public static void Get_resources(ref float target, ref float skill, int m)
-	{
-		if (target < 1000)
-		{
-			target += 1 * (1 + skill) * m;
-			if (skill < 5)
-			{
-				skill += 0.001f;
-			}
-		}
-	}
-
-	public static void Get_resources(ref float target, ref float skill, float m)
-	{
-		if (target < 1000)
-		{
-			float increase = 1 * (1 + skill) * m;
-			target += increase;
-
-			if (skill < 5)
-			{
-				skill += 0.001f;
-			}
-		}
-	}
-
-	public static void Use_resource(ref int resource, int m)
+	public static void Use_resource(ref float resource, int m)
 	{
 		resource -= m;
 	}
 
-	// Användningsexempel:
 	public void Chop_tree()
 	{
 		nextPosition = locations.get_position_lumberyard();
-		Get_resources(ref _shoppedTree, ref _skill_chopping_tree, 1);
-		Eat(1.8f);
+		Get_resources(ref _shoppedTree, ref _skill_chopping_tree, 0.5f);
+		Eat(2.1f);
 	}
 
 	public void Chop_wood()
@@ -154,7 +127,7 @@ public void ChangeColor()
 		}
 		Use_resource(ref _shoppedTree, 1);
 		Get_resources(ref _wood, ref _skillChoppingWood, 2);
-		Eat(1.4f);
+		Eat(1.6f);
 	}
 
 	public void Fish()
@@ -167,7 +140,7 @@ public void ChangeColor()
 		}
 		Use_resource(ref _fishingHooks, 3);
 		Get_resources(ref _rawFish, ref _skillFishing, 1);
-		Eat(1.1f);
+		Eat(1.3f);
 	}
 
 	public void Craft_fishing_hooks()
@@ -202,26 +175,26 @@ public void ChangeColor()
 		Use_resource(ref _rawFish, 6);
 		Use_resource(ref _wood, 9);
 		Get_resources(ref _cookedFish, ref _skillCooking, 5f);
-		Eat(1.1f);
+		Eat(1.2f);
 
 	}
 
-	public int Shopped_tree
+	public float Shopped_tree
 	{
 		get => _shoppedTree;
 		set => _shoppedTree = value;
 	}
-	public int Wood
+	public float Wood
 	{
 		get => _wood;
 		set => _wood = value;
 	}
-	public int Fishing_hooks
+	public float Fishing_hooks
 	{
 		get => _fishingHooks;
 		set => _fishingHooks = value;
 	}
-	public int Raw_fish
+	public float Raw_fish
 	{
 		get => _rawFish;
 		set => _rawFish = value;
@@ -260,226 +233,75 @@ public void ChangeColor()
 	public float Hunger
 	{
 		get => _hunger;
-		set {{
-		_hunger = value;
-		ChangeColor(); // Update color when hunger changes
-	}}
+		set
+		{
+			{
+				_hunger = value;
+				ChangeColor(); // update color when hunger changes
+			}
+		}
 	}
 
-	public static float GetAverageHunger()
+	public static float GetAverageValue(Func<blobly, float> selector)
 	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		float totalHunger = allInstances.Sum(b => b.Hunger);
-		return totalHunger / allInstances.Count;
+		if (allInstances.Count == 0) return 0;
+		return allInstances.Sum(selector) / allInstances.Count;
 	}
 
-	public static float GetAverageFishingHooks()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		float totalFishingHooks = allInstances.Sum(b => b.Fishing_hooks);
-		return totalFishingHooks / allInstances.Count;
-	}
-
-	public static float GetAverageShoppedTree()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		float totalShoppedTree = allInstances.Sum(b => b.Shopped_tree);
-		return totalShoppedTree / allInstances.Count;
-	}
-
-	public static float GetAverageWood()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		float totalWood = allInstances.Sum(b => b.Wood);
-		return totalWood / allInstances.Count;
-	}
-
-	public static float GetAverageRawFish()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		float totalRawFish = allInstances.Sum(b => b.Raw_fish);
-		return totalRawFish / allInstances.Count;
-	}
-
-	public static float GetAverageCookedFish()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		float totalCookedFish = allInstances.Sum(b => b.CookedFish);
-		return totalCookedFish / allInstances.Count;
-	}
+	public static float GetAverageHunger() => GetAverageValue(b => b.Hunger);
+	public static float GetAverageFishingHooks() => GetAverageValue(b => b.Fishing_hooks);
+	public static float GetAverageShoppedTree() => GetAverageValue(b => b.Shopped_tree);
+	public static float GetAverageWood() => GetAverageValue(b => b.Wood);
+	public static float GetAverageRawFish() => GetAverageValue(b => b.Raw_fish);
+	public static float GetAverageCookedFish() => GetAverageValue(b => b.CookedFish);
 
 	public static float GetPopulationSize()
 	{
 		return allInstances.Count;
 	}
 
-	public static float GetAverageOfCookedFishOfTheLowest10Percent()
+	private static float GetAverageOfLowest10Percent(Func<blobly, float> selector)
 	{
-		if (allInstances.Count == 0)
-			return 0;
+		if (allInstances.Count == 0) return 0;
 
-		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var lowest10PercentInstances = allInstances.OrderBy(b => b.CookedFish).Take(lowest10Percent);
-		float totalCookedFish = lowest10PercentInstances.Sum(b => b.CookedFish);
-		return totalCookedFish / lowest10Percent;
+		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var lowest10PercentInstances = allInstances.OrderBy(selector).Take(tenPercent);
+
+		float total = lowest10PercentInstances.Sum(selector);
+		return total / tenPercent;
 	}
 
-	public static float GetAverageOfCookedFishOfTheHighest10Percent()
+	private static float GetAverageOfHighest10Percent(Func<blobly, float> selector)
 	{
-		if (allInstances.Count == 0)
-			return 0;
+		if (allInstances.Count == 0) return 0;
 
-		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var highest10PercentInstances = allInstances.OrderByDescending(b => b.CookedFish).Take(highest10Percent);
-		float totalCookedFish = highest10PercentInstances.Sum(b => b.CookedFish);
-		return totalCookedFish / highest10Percent;
+		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		var highest10PercentInstances = allInstances.OrderByDescending(selector).Take(tenPercent);
+
+		float total = highest10PercentInstances.Sum(selector);
+		return total / tenPercent;
 	}
 
-	public static float GetAverageOfRawFishOfTheLowest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var lowest10PercentInstances = allInstances.OrderBy(b => b.Raw_fish).Take(lowest10Percent);
-		float totalRawFish = lowest10PercentInstances.Sum(b => b.Raw_fish);
-		return totalRawFish / lowest10Percent;
-	}
-
-	public static float GetAverageOfRawFishOfTheHighest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Raw_fish).Take(highest10Percent);
-		float totalRawFish = highest10PercentInstances.Sum(b => b.Raw_fish);
-		return totalRawFish / highest10Percent;
-	}
-
-	/*
-	private float _hunger = 100;
-	private int _shoppedTree = 40;
-	private int _wood = 100;
-	private int _fishingHooks = 100;*/
-
-	public static float GetAverageOfHungerOfTheLowest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var lowest10PercentInstances = allInstances.OrderBy(b => b.Hunger).Take(lowest10Percent);
-		float totalHunger = lowest10PercentInstances.Sum(b => b.Hunger);
-		return totalHunger / lowest10Percent;
-	}
-
-	public static float GetAverageOfHungerOfTheHighest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Hunger).Take(highest10Percent);
-		float totalHunger = highest10PercentInstances.Sum(b => b.Hunger);
-		return totalHunger / highest10Percent;
-	}
-
-	public static float GetAverageOfShoppedTreeOfTheLowest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var lowest10PercentInstances = allInstances.OrderBy(b => b.Shopped_tree).Take(lowest10Percent);
-		float totalShoppedTree = lowest10PercentInstances.Sum(b => b.Shopped_tree);
-		return totalShoppedTree / lowest10Percent;
-	}
-
-	public static float GetAverageOfShoppedTreeOfTheHighest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Shopped_tree).Take(highest10Percent);
-		float totalShoppedTree = highest10PercentInstances.Sum(b => b.Shopped_tree);
-		return totalShoppedTree / highest10Percent;
-	}
-
-	public static float GetAverageOfWoodOfTheLowest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var lowest10PercentInstances = allInstances.OrderBy(b => b.Wood).Take(lowest10Percent);
-		float totalWood = lowest10PercentInstances.Sum(b => b.Wood);
-		return totalWood / lowest10Percent;
-	}
-
-	public static float GetAverageOfWoodOfTheHighest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Wood).Take(highest10Percent);
-		float totalWood = highest10PercentInstances.Sum(b => b.Wood);
-		return totalWood / highest10Percent;
-	}
-
-	public static float GetAverageOfFishingHooksOfTheLowest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int lowest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var lowest10PercentInstances = allInstances.OrderBy(b => b.Fishing_hooks).Take(lowest10Percent);
-		float totalFishingHooks = lowest10PercentInstances.Sum(b => b.Fishing_hooks);
-		return totalFishingHooks / lowest10Percent;
-	}
-
-	public static float GetAverageOfFishingHooksOfTheHighest10Percent()
-	{
-		if (allInstances.Count == 0)
-			return 0;
-
-		int highest10Percent = (int)Math.Ceiling(allInstances.Count * 0.1);
-		var highest10PercentInstances = allInstances.OrderByDescending(b => b.Fishing_hooks).Take(highest10Percent);
-		float totalFishingHooks = highest10PercentInstances.Sum(b => b.Fishing_hooks);
-		return totalFishingHooks / highest10Percent;
-	}
-
-
-
-	
-	
-	
-
-
+	public static float GetAverageOfCookedFishOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.CookedFish);
+	public static float GetAverageOfCookedFishOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.CookedFish);
+	public static float GetAverageOfRawFishOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Raw_fish);
+	public static float GetAverageOfRawFishOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Raw_fish);
+	public static float GetAverageOfHungerOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Hunger);
+	public static float GetAverageOfHungerOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Hunger);
+	public static float GetAverageOfShoppedTreeOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Shopped_tree);
+	public static float GetAverageOfShoppedTreeOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Shopped_tree);
+	public static float GetAverageOfWoodOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Wood);
+	public static float GetAverageOfWoodOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Wood);
+	public static float GetAverageOfFishingHooksOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Fishing_hooks);
+	public static float GetAverageOfFishingHooksOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Fishing_hooks);
 
 
 	public override void _Ready()
 	{
 		sprite = GetNode<Sprite2D>("Sprite2D");
-	ChangeColor();
-	animations = GetNode<AnimationPlayer>("Sprite2D/AnimationPlayer");
+		ChangeColor();
+		animations = GetNode<AnimationPlayer>("Sprite2D/AnimationPlayer");
 	}
-
-
 
 	private void UpdateAnimation()
 	{
@@ -494,7 +316,7 @@ public void ChangeColor()
 			else if (Velocity.X > 0) direction = "Right";
 			else if (Velocity.Y < 0) direction = "Up";
 
-			// You might want to play the animation here
+			// animate the direction of the sprite
 			animations.Play("walk" + direction);
 		}
 	}
@@ -504,16 +326,12 @@ public void ChangeColor()
 		targetPosition = (clickPosition - Position).Normalized();
 		Velocity = targetPosition * Speed;
 		MoveAndSlide();
-
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-
 		if (Input.IsActionJustPressed("left_click"))
 		{
-			//clickPosition = GetGlobalMousePosition();
-			// list of functions to get random positions
 			List<Action> actions = new List<Action>
 			{
 				Chop_tree,
@@ -532,15 +350,7 @@ public void ChangeColor()
 			actions[rand.Next(actions.Count)]();
 			actions[rand.Next(actions.Count)]();
 
-
-
-
 			clickPosition = nextPosition;
-			// print the position
-			//GD.Print(clickPosition);
-			// print the wood
-		
-			
 
 		}
 

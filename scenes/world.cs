@@ -25,46 +25,24 @@ public partial class world : Node2D
 			CallDeferred("add_child", blobly);
 		}
 	}
-
-	// Called when the node enters the scene tree for the first time.
 	private Timer timer;
 
 	public override void _Ready()
 	{
 		spawn_blobly();
 
-		/*
-		hungerChart = InstantiateChart(new Vector2(1, 720), "Hunger", blobly.GetAverageHunger);
-		shoppedTreeChart = InstantiateChart(new Vector2(270, 720), "Shopped Trees", blobly.GetAverageShoppedTree);
-		woodChart = InstantiateChart(new Vector2(540, 720), "Wood", blobly.GetAverageWood);
-		fishingHooksChart = InstantiateChart(new Vector2(810, 720), "Fishing Hooks", blobly.GetAverageFishingHooks);
-		rawFishChart = InstantiateChart(new Vector2(1080, 720), "Raw Fish", blobly.GetAverageRawFish);
-		cookedFishChart = InstantiateChart(new Vector2(1350, 720), "Cooked Fish", blobly.GetAverageCookedFish);
-		populationSizeChart = InstantiateChart(new Vector2(1620, 720), "Population Size", blobly.GetPopulationSize);
-		lowestCookedFishChart = InstantiateChart(new Vector2(1, 900), "Low Cooked Fish", blobly.GetAverageOfCookedFishOfTheLowest10Percent);
-		highestCookedFishChart = InstantiateChart(new Vector2(270, 900), "High Cooked Fish", blobly.GetAverageOfCookedFishOfTheHighest10Percent);
-		test = InstantiateTwoCharts(new Vector2(540, 900), "Test", 
-			blobly.GetAverageOfCookedFishOfTheLowest10Percent, 
-			blobly.GetAverageOfCookedFishOfTheHighest10Percent);
-
-		*/
-		// Instantiate the cooked fish chart
 		hungerChart = InstantiateThreeCharts(new Vector2(1281, 1), "Hunger",
 	blobly.GetAverageOfHungerOfTheHighest10Percent, blobly.GetAverageHunger, blobly.GetAverageOfHungerOfTheLowest10Percent);
-fishingHooksChart = InstantiateThreeCharts(new Vector2(1601, 1), "Fishing Hooks",
-	blobly.GetAverageOfFishingHooksOfTheHighest10Percent, blobly.GetAverageFishingHooks, blobly.GetAverageOfFishingHooksOfTheLowest10Percent);
-cookedFishChart = InstantiateThreeCharts(new Vector2(1281, 350), "Cooked Fish",
-	blobly.GetAverageOfCookedFishOfTheHighest10Percent, blobly.GetAverageCookedFish, blobly.GetAverageOfCookedFishOfTheLowest10Percent);
-rawFishChart = InstantiateThreeCharts(new Vector2(1601, 350), "Raw Fish",
-	blobly.GetAverageOfRawFishOfTheHighest10Percent, blobly.GetAverageRawFish, blobly.GetAverageOfRawFishOfTheLowest10Percent);
-shoppedTreeChart = InstantiateThreeCharts(new Vector2(1281, 700), "Shopped Trees",
-	blobly.GetAverageOfShoppedTreeOfTheHighest10Percent, blobly.GetAverageShoppedTree, blobly.GetAverageOfShoppedTreeOfTheLowest10Percent);
-woodChart = InstantiateThreeCharts(new Vector2(1601, 700), "Wood",
-	blobly.GetAverageOfWoodOfTheHighest10Percent, blobly.GetAverageWood, blobly.GetAverageOfWoodOfTheLowest10Percent);
-	
-		
-			
-
+		fishingHooksChart = InstantiateThreeCharts(new Vector2(1601, 1), "Fishing Hooks",
+			blobly.GetAverageOfFishingHooksOfTheHighest10Percent, blobly.GetAverageFishingHooks, blobly.GetAverageOfFishingHooksOfTheLowest10Percent);
+		cookedFishChart = InstantiateThreeCharts(new Vector2(1281, 350), "Cooked Fish",
+			blobly.GetAverageOfCookedFishOfTheHighest10Percent, blobly.GetAverageCookedFish, blobly.GetAverageOfCookedFishOfTheLowest10Percent);
+		rawFishChart = InstantiateThreeCharts(new Vector2(1601, 350), "Raw Fish",
+			blobly.GetAverageOfRawFishOfTheHighest10Percent, blobly.GetAverageRawFish, blobly.GetAverageOfRawFishOfTheLowest10Percent);
+		shoppedTreeChart = InstantiateThreeCharts(new Vector2(1281, 700), "Shopped Trees",
+			blobly.GetAverageOfShoppedTreeOfTheHighest10Percent, blobly.GetAverageShoppedTree, blobly.GetAverageOfShoppedTreeOfTheLowest10Percent);
+		woodChart = InstantiateThreeCharts(new Vector2(1601, 700), "Wood",
+			blobly.GetAverageOfWoodOfTheHighest10Percent, blobly.GetAverageWood, blobly.GetAverageOfWoodOfTheLowest10Percent);
 
 	}
 
@@ -94,6 +72,7 @@ woodChart = InstantiateThreeCharts(new Vector2(1601, 700), "Wood",
 			UpdateAllGraphs();
 		}
 	}
+
 
 	private void UpdateAllGraphs()
 	{
