@@ -10,6 +10,9 @@ public partial class NeuralNetworkVisualizer : Node2D
 	private float layerSpacing = 250;
 	private float nodeSpacing = 33;
 
+	private bool _shouldDraw = false;
+	private bool _updateNodes = false;
+
 	public NeuralNetwork NeuralNetwork
 	{
 		get => neuralNetwork;
@@ -36,7 +39,7 @@ public partial class NeuralNetworkVisualizer : Node2D
 			for (int nodeIndex = 0; nodeIndex < numNodes; nodeIndex++)
 			{
 				var position = new Vector2(xOffset, yOffset + nodeIndex * nodeSpacing);
-				GD.Print("position: " + position.X + ", " + position.Y);
+
 				positions.Add(position);
 			}
 			nodePositions.Add(positions);
@@ -60,6 +63,11 @@ public partial class NeuralNetworkVisualizer : Node2D
 	{
 		DrawConnections();
 		DrawNodes();
+		if (_updateNodes)
+		{
+			DrawUpdatedNodes();
+			_updateNodes = false;
+		}
 	}
 
 	private void DrawNodes()
@@ -70,6 +78,45 @@ public partial class NeuralNetworkVisualizer : Node2D
 			{
 				DrawCircle(position, nodeRadius, new Color(0.5f, 0.5f, 0.5f));
 			}
+		}
+	}
+
+	public void UpdateDrawNodes()
+	{
+		_updateNodes = true;
+		QueueRedraw(); // För att säkerställa att _Draw anropas
+	}
+
+	private void DrawUpdatedNodes()
+	{
+		double[] inputs = new double[neuralNetwork.Layers[0].NumInputsNodes];
+		Array.Copy(inputs, inputs, inputs.Length);
+
+		for (int layerIndex = 0; layerIndex < neuralNetwork.AllLayerOutputs.Count; layerIndex++)
+		{
+			double[] outputs = neuralNetwork.AllLayerOutputs[layerIndex];
+
+			var layerPositions = nodePositions[layerIndex];
+			GD.Print("-----------------");
+			GD.Print("Outputs: " + outputs.Length);
+			for (int nodeIndex = 0; nodeIndex < outputs.Length; nodeIndex++)
+			{
+				var position = layerPositions[nodeIndex];
+				float activation = nodeIndex < outputs.Length ? (float)outputs[nodeIndex] : 0.5f;
+
+				// Apply an exponential scale to the activation to enhance differences
+				activation = (float)Math.Pow(activation, 2);
+
+				// Normalize activation to [0, 1]
+				activation = Math.Max(0, Math.Min(1, activation));
+				GD.Print("Activation: " + (float)outputs[nodeIndex]);
+
+				// Determine node color based on activation
+				Color nodeColor = new Color(activation, 0, 1 - activation);
+				DrawCircle(position, nodeRadius, nodeColor);
+			}
+
+			Array.Copy(outputs, inputs, outputs.Length);
 		}
 	}
 

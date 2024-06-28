@@ -11,6 +11,8 @@ public partial class world : Node2D
 	private chart fishingHooksChart;
 	private chart populationSizeChart;
 
+	private NeuralNetworkVisualizer neuralNetworkVisualizer;
+
 
 	// spawn a blobly at a random location
 	public void spawn_blobly()
@@ -18,7 +20,7 @@ public partial class world : Node2D
 		string path = "agent/blobly.tscn";
 		PackedScene packedScene = GD.Load<PackedScene>(path);
 
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 100; i++)
 		{
 			blobly blobly = packedScene.Instantiate<blobly>();
 			
@@ -30,8 +32,11 @@ public partial class world : Node2D
 	public override void _Ready()
 	{
 		spawn_blobly();
-		NeuralNetworkVisualizer neuralNetworkVisualizer = new NeuralNetworkVisualizer(blobly.AllInstances[0].NeuralNetwork);
+		neuralNetworkVisualizer = new NeuralNetworkVisualizer(blobly.AllInstances[0].NeuralNetwork);
 		AddChild(neuralNetworkVisualizer);
+		
+		
+		
 
 
 
@@ -71,7 +76,12 @@ public partial class world : Node2D
 		if (Input.IsActionJustPressed("left_click"))
 		{
 			GD.Print("Left click pressed");
+			AddChild(neuralNetworkVisualizer);
 			UpdateAllGraphs();
+			neuralNetworkVisualizer.UpdateDrawNodes();
+			
+			
+			
 		
 		}
 	}

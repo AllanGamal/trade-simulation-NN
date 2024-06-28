@@ -64,30 +64,18 @@ public class Layer
    private void InitializeWeightsAndBiases()
 {
     Random random = new Random();
-    double standardDeviation = Math.Sqrt(2.0 / numInputsNodes); // Xavier/Glorot initialization
-
     for (int i = 0; i < numInputsNodes; i++)
     {
         for (int j = 0; j < numOutputNodes; j++)
         {
-            weights[i, j] = RandomGaussian(random, 0, standardDeviation);
+            weights[i, j] = random.NextDouble() * 2 - 1; // Initialize weights between -1 and 1
         }
     }
 
     for (int j = 0; j < numOutputNodes; j++)
     {
-        biases[j] = RandomGaussian(random, 0, standardDeviation); // Biases can also be initialized similarly
+        biases[j] = random.NextDouble() * 2 - 1; // Initialize biases between -1 and 1
     }
-}
-
-// Function to generate Gaussian distributed random numbers
-private double RandomGaussian(Random random, double mean, double stddev)
-{
-    // Using Box-Muller transform to generate a pair of independent standard normally distributed random numbers
-    double u1 = 1.0 - random.NextDouble(); // uniform(0,1] random doubles
-    double u2 = 1.0 - random.NextDouble();
-    double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); // random normal(0,1)
-    return mean + stddev * randStdNormal; // random normal(mean,stdDev)
 }
 
     public void Mutate()

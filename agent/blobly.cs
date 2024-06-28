@@ -16,7 +16,9 @@ public partial class blobly : CharacterBody2D
 	private float _wood = 100;
 	private float _fishingHooks = 100;
 	private float _rawFish = 100;
-	private float _cookedFish = 200;
+	private float _cookedFish = 500;
+
+	
 
 	// skills
 	private float _skillCooking = 0;
@@ -26,6 +28,7 @@ public partial class blobly : CharacterBody2D
 	private float _skillCraftFishingHooks = 0;
 	private Sprite2D sprite;
 	private NeuralNetwork neuralNetwork;
+	private static NeuralNetworkVisualizer visualizer;
 
 	private static List<blobly> allInstances = new List<blobly>();
 
@@ -38,6 +41,10 @@ public partial class blobly : CharacterBody2D
 	{
 		allInstances.Add(this);
 		neuralNetwork = new NeuralNetwork(11, 8, 4, 6);
+		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
+		
+		
+		GD.Print(visualizer.NeuralNetwork.Layers.Length);
 	}
 
 	public NeuralNetwork NeuralNetwork
@@ -93,7 +100,7 @@ public void SetOutputs(double[] outputs)
 {
 	// take the highest output
 	//outputs.OrderByDescending(o => o).First();
-	GD.Print("Outputs: " + outputs[0]);
+	
 
 }
 
@@ -143,7 +150,7 @@ public void SetOutputs(double[] outputs)
 
 			if (skill < 5)
 			{
-				skill += 0.01f;
+				skill += 0.008f;
 			}
 		}
 	}
@@ -400,13 +407,17 @@ public void SetOutputs(double[] outputs)
 			actions[rand.Next(actions.Count)]();
 			Random randy = new Random();
 			
+			
+			
 
 			double[] inputs = GetInputs();
 		double[] outputs = neuralNetwork.CalculateOutputs(inputs);
+		
 		SetOutputs(outputs);
-			GD.Print("Outputs: " + string.Join(", ", outputs));
-
+			//GD.Print("Outputs: " + string.Join(", ", outputs));
 			
+			
+						
 
 			clickPosition = nextPosition;
 
