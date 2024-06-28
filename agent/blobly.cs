@@ -7,7 +7,7 @@ public partial class blobly : CharacterBody2D
 {
 	[Export]
 	public Vector2 nextPosition = new Vector2();
-	public static int Speed { get; set; } = 1200;
+	public static int Speed { get; set; } = 3200;
 	public Locations locations = new Locations();
 
 	// resources
@@ -16,7 +16,7 @@ public partial class blobly : CharacterBody2D
 	private float _wood = 100;
 	private float _fishingHooks = 100;
 	private float _rawFish = 100;
-	private float _cookedFish = 500;
+	private float _cookedFish = 200;
 
 	// skills
 	private float _skillCooking = 0;
@@ -25,8 +25,26 @@ public partial class blobly : CharacterBody2D
 	private float _skillFishing = 0;
 	private float _skillCraftFishingHooks = 0;
 	private Sprite2D sprite;
+	private NeuralNetwork neuralNetwork;
 
+	private static List<blobly> allInstances = new List<blobly>();
 
+	public static List<blobly> AllInstances
+	{
+		get => allInstances;
+	}
+
+	public blobly()
+	{
+		allInstances.Add(this);
+		neuralNetwork = new NeuralNetwork(11, 8, 4, 6);
+	}
+
+	public NeuralNetwork NeuralNetwork
+	{
+		get => neuralNetwork;
+	}
+	
 	public void ChangeColor()
 	{
 		if (sprite == null)
@@ -52,14 +70,35 @@ public partial class blobly : CharacterBody2D
 	private Vector2 targetPosition;
 	private Vector2 clickPosition;
 
-	private static List<blobly> allInstances = new List<blobly>();
-
-
-
-	public blobly()
+	// input for the input layer of the neural network
+public double[] GetInputs()
+{
+	return new double[]
 	{
-		allInstances.Add(this);
-	}
+		(Hunger-50)/50,
+		(Shopped_tree-500)/500,
+		(Wood-500)/500,
+		(Fishing_hooks-500)/500,
+		(Raw_fish-500)/500,
+		(CookedFish-500)/500,
+		(Skill_cooking-2.5)/2.5,
+		(Skill_chopping_tree-2.5)/2.5,
+		(Skill_chopping_wood-2.5)/2.5,
+		(Skill_fishing-2.5)/2.5,
+		(Skill_craft_fishing_hooks-2.5)/2.5
+	};
+}
+
+public void SetOutputs(double[] outputs)
+{
+	// take the highest output
+	//outputs.OrderByDescending(o => o).First();
+	GD.Print("Outputs: " + outputs[0]);
+
+}
+
+
+	
 
 	~blobly()
 	{
@@ -83,6 +122,10 @@ public partial class blobly : CharacterBody2D
 			Hunger = Math.Min(Hunger, 100);
 
 		}
+		if (Hunger < 0)
+		{
+			Hunger = 0;
+		}
 	}
 
 	public static void Get_resources<T, U>(ref T target, ref float skill, U m) where T : struct where U : struct
@@ -100,7 +143,7 @@ public partial class blobly : CharacterBody2D
 
 			if (skill < 5)
 			{
-				skill += 0.007f;
+				skill += 0.01f;
 			}
 		}
 	}
@@ -177,6 +220,11 @@ public partial class blobly : CharacterBody2D
 		Get_resources(ref _cookedFish, ref _skillCooking, 5f);
 		Eat(1.2f);
 
+	}
+
+	public void GoToMarket ()
+	{
+		
 	}
 
 	public float Shopped_tree
@@ -321,6 +369,7 @@ public partial class blobly : CharacterBody2D
 		}
 	}
 
+	
 	private void GoThere(double delta)
 	{
 		targetPosition = (clickPosition - Position).Normalized();
@@ -349,6 +398,15 @@ public partial class blobly : CharacterBody2D
 			actions[rand.Next(actions.Count)]();
 			actions[rand.Next(actions.Count)]();
 			actions[rand.Next(actions.Count)]();
+			Random randy = new Random();
+			
+
+			double[] inputs = GetInputs();
+		double[] outputs = neuralNetwork.CalculateOutputs(inputs);
+		SetOutputs(outputs);
+			GD.Print("Outputs: " + string.Join(", ", outputs));
+
+			
 
 			clickPosition = nextPosition;
 
@@ -366,3 +424,7 @@ public partial class blobly : CharacterBody2D
 
 	}
 }
+
+
+
+

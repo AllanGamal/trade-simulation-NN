@@ -18,18 +18,22 @@ public partial class world : Node2D
 		string path = "agent/blobly.tscn";
 		PackedScene packedScene = GD.Load<PackedScene>(path);
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			blobly blobly = packedScene.Instantiate<blobly>();
-			blobly.GlobalPosition = new Vector2(new Random().Next(10, 174), new Random().Next(448, 496));
+			
 			CallDeferred("add_child", blobly);
 		}
 	}
-	private Timer timer;
+	
 
 	public override void _Ready()
 	{
 		spawn_blobly();
+		NeuralNetworkVisualizer neuralNetworkVisualizer = new NeuralNetworkVisualizer(blobly.AllInstances[0].NeuralNetwork);
+		AddChild(neuralNetworkVisualizer);
+
+
 
 		hungerChart = InstantiateThreeCharts(new Vector2(1281, 1), "Hunger",
 	blobly.GetAverageOfHungerOfTheHighest10Percent, blobly.GetAverageHunger, blobly.GetAverageOfHungerOfTheLowest10Percent);
@@ -67,18 +71,7 @@ public partial class world : Node2D
 		if (Input.IsActionJustPressed("left_click"))
 		{
 			GD.Print("Left click pressed");
-			GD.Print(blobly.GetAverageCookedFish());
-
 			UpdateAllGraphs();
-
-			double[] inputs = { 1.0};
-		double[,] weights = {{ 0.2, 0.8 }};
-		double[] biases = { 0.5 };
-
-		GD.Print("Inputs: " + string.Join(", ", inputs));
-		GD.Print("Weights: " + weights[0, 0]);
-		GD.Print("Biases: " + string.Join(", ", biases));
-
 		
 		}
 	}

@@ -1,6 +1,10 @@
 public class NeuralNetwork {
-    Layer[] layers;
 
+    private Layer[] layers;
+
+    public Layer[] Layers {
+        get => layers;
+    }
 
     public NeuralNetwork(params int[] layersSized) {
         layers = new Layer[layersSized.Length - 1];
@@ -15,4 +19,6 @@ public class NeuralNetwork {
         }
         return inputs;
     }
+
+    
 }
