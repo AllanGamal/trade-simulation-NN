@@ -70,6 +70,16 @@ public partial class world : Node2D
 			GD.Print(blobly.GetAverageCookedFish());
 
 			UpdateAllGraphs();
+
+			double[] inputs = { 1.0};
+		double[,] weights = {{ 0.2, 0.8 }};
+		double[] biases = { 0.5 };
+
+		GD.Print("Inputs: " + string.Join(", ", inputs));
+		GD.Print("Weights: " + weights[0, 0]);
+		GD.Print("Biases: " + string.Join(", ", biases));
+
+		
 		}
 	}
 
