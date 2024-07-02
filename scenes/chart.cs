@@ -8,7 +8,7 @@ public partial class chart : Node2D
 	private string title;
 	private List<List<float>> multiValues = new List<List<float>>();
 	private int maxPoints = 650; // Max antal punkter som ska visas i grafen
-	private Vector2 graphSize = new Vector2(600, 250);
+	private Vector2 graphSize;
 	private Vector2 offset = new Vector2(1280, 0);
 	private float maxY = float.MinValue;
 	private float minY = float.MaxValue;
@@ -17,6 +17,12 @@ public partial class chart : Node2D
 	public List<UpdateValueDelegate> GetValues = new List<UpdateValueDelegate>();
 
 	private Font font = ResourceLoader.Load<Font>("res://misc/fonts/cmu-typewriter/Typewriter/cmuntb.ttf");
+
+	public chart(Vector2 graphSize)
+	{
+	
+		this.graphSize = graphSize;
+	}
 
 	public Vector2 Offset
 	{
@@ -61,19 +67,35 @@ public partial class chart : Node2D
 	private void DrawGraph()
 	{
 		Color[] colors = { Colors.AliceBlue, Colors.Red, Colors.Green };
-		for (int lineIndex = 0; lineIndex < multiValues.Count; lineIndex++)
-		{
+
+		// Check if there is only one line to draw
+		if (multiValues.Count == 1) {
+			var values = multiValues[0];
+			int startIndex = Math.Max(0, values.Count - maxPoints);
+			int visiblePoints = values.Count - startIndex;
+			for (int i = 0; i < visiblePoints - 1; i++) {
+				Vector2 start = ScalePoint(i, visiblePoints, 0); // Use 0 as the lineIndex for the single line
+				Vector2 end = ScalePoint(i + 1, visiblePoints, 0);
+				DrawLine(offset + start, offset + end, colors[0], 3); // Use the first color for the single line
+			}
+			if (visiblePoints > 0) {
+				Vector2 lastPoint = ScalePoint(visiblePoints - 1, visiblePoints, 0);
+				DrawCircle(offset + lastPoint, 2, colors[0]);
+			}
+			return; // Exit the method after drawing the single line
+		}
+
+		// Existing logic for multiple lines
+		for (int lineIndex = 0; lineIndex < multiValues.Count; lineIndex++) {
 			var values = multiValues[lineIndex];
 			int startIndex = Math.Max(0, values.Count - maxPoints);
 			int visiblePoints = values.Count - startIndex;
-			for (int i = 0; i < visiblePoints - 1; i++)
-			{
+			for (int i = 0; i < visiblePoints - 1; i++) {
 				Vector2 start = ScalePoint(i, visiblePoints, lineIndex);
 				Vector2 end = ScalePoint(i + 1, visiblePoints, lineIndex);
 				DrawLine(offset + start, offset + end, colors[lineIndex % colors.Length], 3);
 			}
-			if (visiblePoints > 0)
-			{
+			if (visiblePoints > 0) {
 				Vector2 lastPoint = ScalePoint(visiblePoints - 1, visiblePoints, lineIndex);
 				DrawCircle(offset + lastPoint, 2, colors[lineIndex % colors.Length]);
 			}
@@ -93,6 +115,12 @@ public partial class chart : Node2D
 		{
 			DrawString(font, offset + new Vector2(0, graphSize.Y + 13), title, HorizontalAlignment.Center, 150, 17);
 		}
+
+		if (GetValues.Count == 1) {
+			DrawString(font, offset + new Vector2(140, graphSize.Y + 15), GetValues[0]().ToString("F2"), HorizontalAlignment.Center, 150, 15, Colors.AliceBlue);
+		} else {
+
+		
 
 		for (int i = 0; i < GetValues.Count; i++)
 		{
@@ -115,6 +143,7 @@ public partial class chart : Node2D
 				DrawString(font, offset + new Vector2(140, graphSize.Y + 15 + (i * 20)), value.ToString("F2"), HorizontalAlignment.Center, 150, 15, color);
 			}
 		}
+	}
 	}
 
 	public void UpdateGraph(params float[] newValues)

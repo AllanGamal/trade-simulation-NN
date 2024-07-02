@@ -20,6 +20,10 @@ public partial class blobly : CharacterBody2D
 
 	
 
+
+
+	
+
 	// skills
 	private float _skillCooking = 0;
 	private float _skill_chopping_tree = 0;
@@ -32,6 +36,13 @@ public partial class blobly : CharacterBody2D
 
 	private static List<blobly> allInstances = new List<blobly>();
 	private double[] outputs;
+	private int score;
+
+	public int Score
+	{
+		get => score;
+		set => score = value;
+	}
 
 // get and set the outputs of the neural network
 public double[] Outputs
@@ -48,9 +59,11 @@ public double[] Outputs
 	public blobly()
 	{
 		allInstances.Add(this);
-		neuralNetwork = new NeuralNetwork(11, 32, 16, 8, 5);
-		outputs = new double[] {0,0,0,0,0,0,0,0};
+		neuralNetwork = new NeuralNetwork(11, 16, 8, 5);
+		outputs = new double[] {0,0,0,0,0};
 		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
+		this.score = -1;
+		this.ZIndex = 10;
 		
 		
 		//GD.Print(visualizer.NeuralNetwork.Layers.Length);
@@ -81,6 +94,28 @@ public double[] Outputs
 
 	public static bool IsHalfPopulationAboveMinimalHunger()
 	{
+
+		blobly[] allBloblys = allInstances.ToArray();
+
+		// if any blobly scoore that is not -1
+		if (allBloblys.Any(b => b.Score == -1))
+		{
+			return true;
+		}
+		// change z-index of the blobly
+		return false;
+
+		/*
+		float averageHunger = GetAverageOfLowest10Percent(b => b.Hunger);
+
+		if (averageHunger < 15)
+		{
+			return false;
+		}
+		return true;
+		*/
+
+		/*
 		blobly[] survivors = allInstances.ToArray();
 		// sort by descending hunger
 		survivors = survivors.OrderByDescending(b => b.Hunger).ToArray();
@@ -90,6 +125,7 @@ public double[] Outputs
 			return false;
 		}
 		return true;
+		*/
 	}
 
 	
@@ -227,7 +263,7 @@ public double[] GetInputs()
 		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 2.7f);
 
 	}
-	private static float res = 15f;
+	private static float res = 50f;
 	
 	
 	public static float Res {
@@ -337,12 +373,30 @@ public double[] GetInputs()
 		return allInstances.Sum(selector) / allInstances.Count;
 	}
 
+	public static float GetAverageValue2 (Func<blobly, float> selector)
+	{
+		var instancesWithScoreMinusOne = allInstances.Where(b => b.Score == -1);
+		if (instancesWithScoreMinusOne.Count() == 0) return 0;
+		return instancesWithScoreMinusOne.Sum(selector) / instancesWithScoreMinusOne.Count();
+	
+	}
+
+
 	public static float GetAverageHunger() => GetAverageValue(b => b.Hunger);
 	public static float GetAverageFishingHooks() => GetAverageValue(b => b.Fishing_hooks);
 	public static float GetAverageShoppedTree() => GetAverageValue(b => b.Shopped_tree);
 	public static float GetAverageWood() => GetAverageValue(b => b.Wood);
 	public static float GetAverageRawFish() => GetAverageValue(b => b.Raw_fish);
-	public static float GetAverageCookedFish() => GetAverageValue(b => b.CookedFish);
+	
+	public static float GetAverageCookedFish() => GetAverageValue(b => b.CookedFish);  
+	public static float GetAverageHunger2() => GetAverageValue2(b => b.Hunger);
+	public static float GetAverageFishingHooks2() => GetAverageValue2(b => b.Fishing_hooks);
+	public static float GetAverageShoppedTree2() => GetAverageValue2(b => b.Shopped_tree);
+	public static float GetAverageWood2() => GetAverageValue2(b => b.Wood);
+	public static float GetAverageRawFish2() => GetAverageValue2(b => b.Raw_fish);
+	public static float GetAverageCookedFish2() => GetAverageValue2(b => b.CookedFish);
+
+	
 
 	public static float GetPopulationSize()
 	{
@@ -351,24 +405,72 @@ public double[] GetInputs()
 
 	private static float GetAverageOfLowest10Percent(Func<blobly, float> selector)
 	{
+		blobly[] sortedBloblys = blobly.AllInstances.OrderBy(b => b.Hunger).ToArray();
+		int lowestHalfPopulation = sortedBloblys.Length;
+
+		var top50 = sortedBloblys.Take((int)(lowestHalfPopulation * 0.5f)).ToList();
+
+		float total = top50.Sum(selector);
+		return total / top50.Count;
+
+
+		/*
+
 		if (allInstances.Count == 0) return 0;
 
-		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.5);
 		var lowest10PercentInstances = allInstances.OrderBy(selector).Take(tenPercent);
 
 		float total = lowest10PercentInstances.Sum(selector);
 		return total / tenPercent;
+		*/
 	}
 
 	private static float GetAverageOfHighest10Percent(Func<blobly, float> selector)
 	{
+
+		blobly[] sortedBloblys = blobly.AllInstances.OrderByDescending(b => b.Hunger).ToArray();
+		int lowestHalfPopulation = sortedBloblys.Length;
+
+		var top50 = sortedBloblys.Take((int)(lowestHalfPopulation * 0.5f)).ToList();
+
+		float total = top50.Sum(selector);
+		return total / top50.Count;
+
+		/*
 		if (allInstances.Count == 0) return 0;
 
-		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.1);
+		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.5);
 		var highest10PercentInstances = allInstances.OrderByDescending(selector).Take(tenPercent);
 
 		float total = highest10PercentInstances.Sum(selector);
 		return total / tenPercent;
+		*/
+	}
+
+	private static float GetAverageOfLowest10Percent2(Func<blobly, float> selector)
+	{
+		var filteredInstances = allInstances.Where(b => b.Score == -1).ToList();
+		if (filteredInstances.Count == 0) return 0;
+
+		int tenPercent = (int)Math.Ceiling(filteredInstances.Count * 0.5);
+		var lowest10PercentInstances = filteredInstances.OrderBy(selector).Take(tenPercent);
+
+		float total = lowest10PercentInstances.Sum(selector);
+		return 0;
+	}
+
+	private static float GetAverageOfHighest10Percent2(Func<blobly, float> selector)
+	{
+
+		var filteredInstances = allInstances.Where(b => b.Score == -1).ToList();
+		if (filteredInstances.Count == 0) return 0;
+
+		int tenPercent = (int)Math.Ceiling(filteredInstances.Count * 0.5);
+		var lowest10PercentInstances = filteredInstances.OrderByDescending(selector).Take(tenPercent);
+
+		float total = lowest10PercentInstances.Sum(selector);
+		return 0;
 	}
 
 	public static float GetAverageOfCookedFishOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.CookedFish);
@@ -385,15 +487,44 @@ public double[] GetInputs()
 	public static float GetAverageOfFishingHooksOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Fishing_hooks);
 
 
+	public static float GetAverageOfCookedFishOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.CookedFish);
+	public static float GetAverageOfCookedFishOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.CookedFish);
+	public static float GetAverageOfRawFishOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Raw_fish);
+	public static float GetAverageOfRawFishOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Raw_fish);
+	public static float GetAverageOfHungerOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Hunger);
+	public static float GetAverageOfHungerOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Hunger);
+	public static float GetAverageOfShoppedTreeOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Shopped_tree);
+	public static float GetAverageOfShoppedTreeOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Shopped_tree);
+	public static float GetAverageOfWoodOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Wood);
+	public static float GetAverageOfWoodOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Wood);
+	public static float GetAverageOfFishingHooksOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Fishing_hooks);
+	public static float GetAverageOfFishingHooksOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Fishing_hooks);
+
+
 	public override void _Ready()
 	{
 		sprite = GetNode<Sprite2D>("Sprite2D");
 		ChangeColor();
 		animations = GetNode<AnimationPlayer>("Sprite2D/AnimationPlayer");
 	}
-	public void PerformRandomAction()
+	public void PerformRandomAction(int score)
 	{
 		
+		
+		if (this.Hunger < 2)
+		{
+		this.Score = score;
+		int scory = score + 10;
+		// change opacity of the blobly and make it orange
+		this.Modulate = new Color(1f, 1f, 1f, 0.08f);
+		// make it smaller
+		this.Scale = new Vector2(0.5f, 0.5f);
+		this.ZIndex = 9;
+		return;
+		}
+
+
+
 		
 		List<Action> actions = new List<Action>
 		{
