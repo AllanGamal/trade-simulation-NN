@@ -7,16 +7,16 @@ public partial class blobly : CharacterBody2D
 {
 	[Export]
 	public Vector2 nextPosition = new Vector2();
-	public static int Speed { get; set; } = 3200;
+	public static int Speed { get; set; } = 4200;
 	public Locations locations = new Locations();
 
 	// resources
 	private float _hunger = 100;
 	private float _shoppedTree = 40;
-	private float _wood = 100;
+	private float _wood = 80;
 	private float _fishingHooks = 100;
 	private float _rawFish = 100;
-	private float _cookedFish = 500;
+	private float _cookedFish = 80;
 
 	
 
@@ -31,6 +31,14 @@ public partial class blobly : CharacterBody2D
 	private static NeuralNetworkVisualizer visualizer;
 
 	private static List<blobly> allInstances = new List<blobly>();
+	private double[] outputs;
+
+// get and set the outputs of the neural network
+public double[] Outputs
+{
+	get => outputs;
+	set => outputs = value;
+}
 
 	public static List<blobly> AllInstances
 	{
@@ -40,11 +48,12 @@ public partial class blobly : CharacterBody2D
 	public blobly()
 	{
 		allInstances.Add(this);
-		neuralNetwork = new NeuralNetwork(11, 8, 4, 6);
+		neuralNetwork = new NeuralNetwork(11, 32, 16, 8, 5);
+		outputs = new double[] {0,0,0,0,0,0,0,0};
 		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
 		
 		
-		GD.Print(visualizer.NeuralNetwork.Layers.Length);
+		//GD.Print(visualizer.NeuralNetwork.Layers.Length);
 	}
 
 	public NeuralNetwork NeuralNetwork
@@ -69,6 +78,21 @@ public partial class blobly : CharacterBody2D
 
 		sprite.Modulate = targetColor;
 	}
+
+	public static bool IsHalfPopulationAboveMinimalHunger()
+	{
+		blobly[] survivors = allInstances.ToArray();
+		// sort by descending hunger
+		survivors = survivors.OrderByDescending(b => b.Hunger).ToArray();
+		int index = (survivors.Length / 2)+1;
+		if (survivors[index].Hunger < 15)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	
 
 
 
@@ -96,13 +120,8 @@ public double[] GetInputs()
 	};
 }
 
-public void SetOutputs(double[] outputs)
-{
-	// take the highest output
-	//outputs.OrderByDescending(o => o).First();
-	
 
-}
+
 
 
 	
@@ -133,6 +152,7 @@ public void SetOutputs(double[] outputs)
 		{
 			Hunger = 0;
 		}
+		
 	}
 
 	public static void Get_resources<T, U>(ref T target, ref float skill, U m) where T : struct where U : struct
@@ -150,9 +170,10 @@ public void SetOutputs(double[] outputs)
 
 			if (skill < 5)
 			{
-				skill += 0.008f;
+				skill += 0.001f;
 			}
-		}
+		} 
+		
 	}
 
 	public static void Use_resource(ref float resource, int m)
@@ -163,74 +184,87 @@ public void SetOutputs(double[] outputs)
 	public void Chop_tree()
 	{
 		nextPosition = locations.get_position_lumberyard();
-		Get_resources(ref _shoppedTree, ref _skill_chopping_tree, 0.5f);
-		Eat(2.1f);
+		Get_resources(ref _shoppedTree, ref _skill_chopping_tree, 1.1f);
+		Eat(1.5f);
 	}
 
 	public void Chop_wood()
 	{
 		nextPosition = locations.get_position_workshop();
+		Eat(1.3f);
 		if (Shopped_tree < 1)
 		{
-			Chop_tree();
+			
 			return;
 		}
 		Use_resource(ref _shoppedTree, 1);
-		Get_resources(ref _wood, ref _skillChoppingWood, 2);
-		Eat(1.6f);
+		Get_resources(ref _wood, ref _skillChoppingWood, 7.5f);
 	}
 
 	public void Fish()
 	{
 		nextPosition = locations.get_position_fishingLake();
-		if (Fishing_hooks < 3)
+		Eat(1.02f);
+		if (Fishing_hooks < 4)
 		{
-			Craft_fishing_hooks();
+			
 			return;
 		}
-		Use_resource(ref _fishingHooks, 3);
-		Get_resources(ref _rawFish, ref _skillFishing, 1);
-		Eat(1.3f);
+		Use_resource(ref _fishingHooks, 4);
+		Get_resources(ref _rawFish, ref _skillFishing, 5f);
 	}
 
 	public void Craft_fishing_hooks()
 	{
 		nextPosition = locations.get_position_workshop();
+		Eat(1.01f);
 		if (Wood < 1)
 		{
-			Chop_wood();
+			
 			return;
 		}
 		Use_resource(ref _wood, 1);
-		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 1);
-		Eat(1.1f);
+		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 2.7f);
 
+	}
+	private static float res = 15f;
+	
+	
+	public static float Res {
+		get => res;
+		set => res = value;
 	}
 	public void Cook()
 	{
 		nextPosition = locations.get_position_kitchen();
-		if (Raw_fish < 6 || Wood < 9)
+		Eat(1.04f);
+		if (Raw_fish < 3 || Wood < 4)
 		{
-			if (Raw_fish < 6)
-			{
-				Fish();
-			}
-			if (Wood < 8)
-			{
-				Chop_wood();
-			}
+			
 			return;
 		}
 
-		Use_resource(ref _rawFish, 6);
-		Use_resource(ref _wood, 9);
-		Get_resources(ref _cookedFish, ref _skillCooking, 5f);
-		Eat(1.2f);
+		Use_resource(ref _rawFish, 3);
+		Use_resource(ref _wood, 4);
+		Get_resources(ref _cookedFish, ref _skillCooking, res);
 
 	}
 
 	public void GoToMarket ()
 	{
+
+		List<Action> actions = new List<Action>
+		{
+			Chop_tree,
+			Chop_wood,
+			Fish,
+			Craft_fishing_hooks,
+			Cook,
+			
+		};
+
+		Random rand = new Random();
+		actions[rand.Next(actions.Count)]();
 		
 	}
 
@@ -357,6 +391,39 @@ public void SetOutputs(double[] outputs)
 		ChangeColor();
 		animations = GetNode<AnimationPlayer>("Sprite2D/AnimationPlayer");
 	}
+	public void PerformRandomAction()
+	{
+		
+		
+		List<Action> actions = new List<Action>
+		{
+			Chop_tree,
+			Chop_wood,
+			Fish,
+			Craft_fishing_hooks,
+			Cook,
+		};
+
+		clickPosition = nextPosition;
+		double[] outputs = this.outputs;
+		int index = Array.IndexOf(outputs, outputs.Max());
+
+		// if highest output is GoToMarket, choose the second highest output
+	
+		actions[index]();
+		// clear the outputs
+		outputs = new double[outputs.Length];
+
+		// Uppdatera neural network inputs och outputs här om det behövs
+		double[] inputs = GetInputs();
+		outputs = neuralNetwork.CalculateOutputs(inputs);
+		this.outputs = outputs;
+		// index of the highest output
+		//SetOutputs(outputs);
+
+		// Uppdatera position
+		
+	}
 
 	private void UpdateAnimation()
 	{
@@ -374,6 +441,13 @@ public void SetOutputs(double[] outputs)
 			// animate the direction of the sprite
 			animations.Play("walk" + direction);
 		}
+	}
+
+	public static blobly getHighestRankedBlobly() {
+		blobly[] survivors = allInstances.ToArray();
+		// sort by descending hunger
+		survivors = survivors.OrderByDescending(b => b.Hunger).ToArray();
+		return survivors[0];
 	}
 
 	
@@ -413,7 +487,7 @@ public void SetOutputs(double[] outputs)
 			double[] inputs = GetInputs();
 		double[] outputs = neuralNetwork.CalculateOutputs(inputs);
 		
-		SetOutputs(outputs);
+		//SetOutputs(outputs);
 			//GD.Print("Outputs: " + string.Join(", ", outputs));
 			
 			
@@ -423,7 +497,7 @@ public void SetOutputs(double[] outputs)
 
 		}
 
-		if (Position.DistanceTo(clickPosition) > 25)
+		if (Position.DistanceTo(clickPosition) > 100)
 		{
 			GoThere(delta);
 		}

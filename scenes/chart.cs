@@ -7,8 +7,8 @@ public partial class chart : Node2D
 {
 	private string title;
 	private List<List<float>> multiValues = new List<List<float>>();
-	private int maxPoints = 10000;
-	private Vector2 graphSize = new Vector2(320, 250);
+	private int maxPoints = 650; // Max antal punkter som ska visas i grafen
+	private Vector2 graphSize = new Vector2(600, 250);
 	private Vector2 offset = new Vector2(1280, 0);
 	private float maxY = float.MinValue;
 	private float minY = float.MaxValue;
@@ -82,7 +82,7 @@ public partial class chart : Node2D
 
 	private Vector2 ScalePoint(int index, int visiblePoints, int lineIndex)
 	{
-		float x = index * graphSize.X / (visiblePoints + 9);
+		float x = index * graphSize.X / (visiblePoints - 1);
 		float y = graphSize.Y - ((multiValues[lineIndex][multiValues[lineIndex].Count - visiblePoints + index] - minY) / (maxY - minY) * graphSize.Y);
 		return new Vector2(x, y);
 	}
@@ -91,8 +91,7 @@ public partial class chart : Node2D
 	{
 		if (!string.IsNullOrEmpty(title))
 		{
-			DrawString(font, offset + new Vector2(0, graphSize.Y + 13), title,
-				HorizontalAlignment.Center, 150, 17);
+			DrawString(font, offset + new Vector2(0, graphSize.Y + 13), title, HorizontalAlignment.Center, 150, 17);
 		}
 
 		for (int i = 0; i < GetValues.Count; i++)
@@ -113,12 +112,10 @@ public partial class chart : Node2D
 					color = Colors.Red;
 				}
 				float value = GetValues[i]();
-				DrawString(font, offset + new Vector2(140, graphSize.Y + 15 + (i * 20)), value.ToString("F2"),
-					HorizontalAlignment.Center, 150, 15, color);
+				DrawString(font, offset + new Vector2(140, graphSize.Y + 15 + (i * 20)), value.ToString("F2"), HorizontalAlignment.Center, 150, 15, color);
 			}
 		}
 	}
-
 
 	public void UpdateGraph(params float[] newValues)
 	{
@@ -129,6 +126,10 @@ public partial class chart : Node2D
 		for (int i = 0; i < newValues.Length; i++)
 		{
 			multiValues[i].Add(newValues[i]);
+			if (multiValues[i].Count > maxPoints)
+			{
+				multiValues[i].RemoveAt(0); // Ta bort äldsta värdet för att hålla listan inom maxPoints
+			}
 		}
 		QueueRedraw();
 	}
