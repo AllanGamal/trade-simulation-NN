@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -9,6 +10,26 @@ public class NeuralNetwork
     public Layer[] Layers => layers;
     public List<double[]> AllLayerOutputs => allLayerOutputs;
 
+    private static List<NeuralNetwork> savedNetworks = new List<NeuralNetwork>();
+
+  
+
+    // get and set for savedNetworks
+    public static List<NeuralNetwork> SavedNetworks
+    {
+        get => savedNetworks;
+        set => savedNetworks = value;
+    }
+
+    // clear savedNetworks
+    public void ClearSavedNetworks()
+    {
+        savedNetworks.Clear();
+    }
+
+
+    
+
     public NeuralNetwork(params int[] layersSized)
     {
         layers = new Layer[layersSized.Length - 1];
@@ -18,6 +39,8 @@ public class NeuralNetwork
             layers[i] = new Layer(layersSized[i], layersSized[i + 1]);
         }
     }
+
+    
 
     public double[] CalculateOutputs(double[] inputs)
     {
@@ -32,7 +55,7 @@ public class NeuralNetwork
     }
 
     // Uppdaterad metod för att kopiera vikter och mutera
-    public void CopyWeightsFrom(NeuralNetwork other)
+    public void CopyWeightsFrom(NeuralNetwork other, Boolean mutate)
     {
         if (this.layers.Length != other.layers.Length)
         {
@@ -42,7 +65,16 @@ public class NeuralNetwork
         for (int i = 0; i < this.layers.Length; i++)
         {
             this.layers[i].CopyWeightsFrom(other.layers[i]);
+            if (mutate){
             this.layers[i].Mutate();
+            }
         }
     }
+    public NeuralNetwork Clone(Boolean mutate)
+    {
+        var clone = new NeuralNetwork(this.layers.Length);
+        clone.CopyWeightsFrom(this, mutate);
+        return clone;
+    }
+    
 }

@@ -186,15 +186,15 @@ private void OnActionTimerTimeout()
 		blobly.PerformRandomAction(count);
 	}
 	
-	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 10000)
+	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 20000)
 	{
 		
 		GD.Print("----------------------------");
 		if (count > highestCount){
 			highestCount=count;
 		}
-		if (count > 10000) {
-		GD.Print("Count above 2000!: " + count);
+		if (count > 20000) {
+		GD.Print("Count above 20000!: " + count);
 		if (blobly.Res > 2.53f){
 			
 		blobly.Res = blobly.Res*0.99f;
@@ -247,6 +247,7 @@ private void OnActionTimerTimeout()
 }
 private void ReproduceTopHalfAndRemoveOthers()
 {
+	
 	/*
     blobly[] sortedBloblys = blobly.AllInstances.OrderByDescending(b => b.Hunger).ToArray();
 	*/
@@ -254,13 +255,10 @@ private void ReproduceTopHalfAndRemoveOthers()
     int halfPopulation = sortedBloblys.Length;
 
     // Keep the top 70%
-    var top70 = sortedBloblys.Take((int)(halfPopulation * 0.3f)).ToList();
+    var top30 = sortedBloblys.Take((int)(halfPopulation * 0.9f)).ToList();
 	// remove bottom half
-	foreach (var blobly in sortedBloblys.Skip(halfPopulation))
-	{
-		blobly.QueueFree();
-	}
 	
+	// remove bottom 70
 	
 
     // Remove all instances
@@ -269,31 +267,45 @@ private void ReproduceTopHalfAndRemoveOthers()
         blobly.QueueFree();
     }
     blobly.AllInstances.Clear();
+	// allinstances = list ofnull
+
 
     Random rand = new Random();
+	blobly.LastWinner = null;
     List<blobly> newPopulation = new List<blobly>();
 
-    while (newPopulation.Count < 1000)
+		blobly lastWinner = CreateNewBlobly(top30[0], false);
+
+        newPopulation.Add(lastWinner);
+		blobly.LastWinner = lastWinner;
+    bool isFirstIteration = true; // Flag to check the first iteration
+
+while (newPopulation.Count < 1000)
+{
+    if (isFirstIteration)
     {
-        foreach (var parentBlobly in top70)
+        for (int i = 0; i < 15; i++)
         {
-            if (newPopulation.Count >= 1000) break;
+            blobly newBlobly = CreateNewBlobly(top30[0], true); 
+            newPopulation.Add(newBlobly);
+        }
+        isFirstIteration = false; 
+    }
 
-            int index = top70.IndexOf(parentBlobly) + 1;
-            double probability = 1.0 - ((index - 1) * 0.001f); // Adjust probability as needed
+    foreach (var parentBlobly in top30)
+    {
+        if (newPopulation.Count >= 1000) break;
 
-                    
+        int index = top30.IndexOf(parentBlobly) + 1;
+        double probability = 1.00 - ((index - 1) * 0.001); // Adjust probability as needed
 
-            if (rand.NextDouble() <= probability)
-            {
-                blobly newBlobly = CreateNewBlobly(parentBlobly);
-                    
-                    newPopulation.Add(newBlobly);
-                    
-                
-            }
+        if (rand.NextDouble() <= probability)
+        {
+            blobly newBlobly = CreateNewBlobly(parentBlobly, true);
+            newPopulation.Add(newBlobly);
         }
     }
+}
 
     // Remove excess if needed
     while (newPopulation.Count > 1000)
@@ -311,7 +323,7 @@ private void ReproduceTopHalfAndRemoveOthers()
     }
 }
 
-private blobly CreateNewBlobly(blobly parentBlobly)
+private blobly CreateNewBlobly(blobly parentBlobly, bool mutate)
 {
 	string path = "agent/blobly.tscn";
 	PackedScene packedScene = GD.Load<PackedScene>(path);
@@ -331,7 +343,7 @@ private blobly CreateNewBlobly(blobly parentBlobly)
 	newBlobly.Skill_craft_fishing_hooks = 0;
 
 	// Copy neural network weights
-	newBlobly.NeuralNetwork.CopyWeightsFrom(parentBlobly.NeuralNetwork);
+	newBlobly.NeuralNetwork.CopyWeightsFrom(parentBlobly.NeuralNetwork, mutate);
 
 	return newBlobly;
 }

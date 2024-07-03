@@ -7,7 +7,7 @@ public partial class chart : Node2D
 {
 	private string title;
 	private List<List<float>> multiValues = new List<List<float>>();
-	private int maxPoints = 650; // Max antal punkter som ska visas i grafen
+	private int maxPoints = 750; // Max antal punkter som ska visas i grafen
 	private Vector2 graphSize;
 	private Vector2 offset = new Vector2(1280, 0);
 	private float maxY = float.MinValue;

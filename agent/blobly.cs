@@ -37,6 +37,19 @@ public partial class blobly : CharacterBody2D
 	private static List<blobly> allInstances = new List<blobly>();
 	private double[] outputs;
 	private int score;
+	public NeuralNetwork NeuralNetwork
+    {
+        get => neuralNetwork;
+    }
+
+
+	private static blobly lastWinner;
+
+	public static blobly LastWinner
+	{
+		get => lastWinner;
+		set => lastWinner = value;
+	}
 
 	public int Score
 	{
@@ -59,20 +72,55 @@ public double[] Outputs
 	public blobly()
 	{
 		allInstances.Add(this);
-		neuralNetwork = new NeuralNetwork(11, 16, 8, 5);
+		neuralNetwork = new NeuralNetwork(11, 32, 16, 5);
 		outputs = new double[] {0,0,0,0,0};
 		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
 		this.score = -1;
 		this.ZIndex = 10;
 		
+		// change color of last winner
+
+		if (lastWinner != null)
+		{
+			
+			lastWinner.Scale = new Vector2(5f, 5f);
+			lastWinner.ZIndex = 15;
+		}
 		
-		//GD.Print(visualizer.NeuralNetwork.Layers.Length);
+	
 	}
 
-	public NeuralNetwork NeuralNetwork
-	{
-		get => neuralNetwork;
-	}
+	
+
+	public blobly Clone()
+    {
+        string path = "agent/blobly.tscn";
+        PackedScene packedScene = GD.Load<PackedScene>(path);
+        blobly clone = packedScene.Instantiate<blobly>();
+
+        // Copy properties
+        clone.Hunger = this.Hunger;
+        clone.Shopped_tree = this.Shopped_tree;
+        clone.Wood = this.Wood;
+        clone.Fishing_hooks = this.Fishing_hooks;
+        clone.Raw_fish = this.Raw_fish;
+        clone.CookedFish = this.CookedFish;
+        clone.Skill_cooking = this.Skill_cooking;
+        clone.Skill_chopping_tree = this.Skill_chopping_tree;
+        clone.Skill_chopping_wood = this.Skill_chopping_wood;
+        clone.Skill_fishing = this.Skill_fishing;
+        clone.Skill_craft_fishing_hooks = this.Skill_craft_fishing_hooks;
+
+        // Copy neural network weights
+        clone.NeuralNetwork.CopyWeightsFrom(this.NeuralNetwork, false);
+        clone.Score = this.Score;
+
+        return clone;
+    }
+
+
+
+	
 	
 	public void ChangeColor()
 	{
@@ -86,10 +134,13 @@ public double[] Outputs
 		Color targetColor;
 
 		float ratio = hungerRatio * 2.0f;
+	
 		targetColor = new Color(0.0f + ratio, 1.0f - ratio, 0.0f); // green -> red
-
-
 		sprite.Modulate = targetColor;
+		
+		
+		
+
 	}
 
 	public static bool IsHalfPopulationAboveMinimalHunger()
@@ -97,11 +148,15 @@ public double[] Outputs
 
 		blobly[] allBloblys = allInstances.ToArray();
 
+		
+
+
 		// if any blobly scoore that is not -1
 		if (allBloblys.Any(b => b.Score == -1))
 		{
 			return true;
 		}
+		
 		// change z-index of the blobly
 		return false;
 
@@ -263,7 +318,7 @@ public double[] GetInputs()
 		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 2.7f);
 
 	}
-	private static float res = 50f;
+	private static float res = 30f;
 	
 	
 	public static float Res {
@@ -381,6 +436,12 @@ public double[] GetInputs()
 	
 	}
 
+	public static float GetLastWinnerValue(Func<blobly, float> selector)
+	{
+		if (lastWinner == null) return 0;
+		return selector(lastWinner);
+	}
+
 
 	public static float GetAverageHunger() => GetAverageValue(b => b.Hunger);
 	public static float GetAverageFishingHooks() => GetAverageValue(b => b.Fishing_hooks);
@@ -389,12 +450,12 @@ public double[] GetInputs()
 	public static float GetAverageRawFish() => GetAverageValue(b => b.Raw_fish);
 	
 	public static float GetAverageCookedFish() => GetAverageValue(b => b.CookedFish);  
-	public static float GetAverageHunger2() => GetAverageValue2(b => b.Hunger);
-	public static float GetAverageFishingHooks2() => GetAverageValue2(b => b.Fishing_hooks);
-	public static float GetAverageShoppedTree2() => GetAverageValue2(b => b.Shopped_tree);
-	public static float GetAverageWood2() => GetAverageValue2(b => b.Wood);
-	public static float GetAverageRawFish2() => GetAverageValue2(b => b.Raw_fish);
-	public static float GetAverageCookedFish2() => GetAverageValue2(b => b.CookedFish);
+	public static float GetAverageHunger2() => GetLastWinnerValue(b => b.Hunger);
+	public static float GetAverageFishingHooks2() => GetLastWinnerValue(b => b.Fishing_hooks);
+	public static float GetAverageShoppedTree2() => GetLastWinnerValue(b => b.Shopped_tree);
+	public static float GetAverageWood2() => GetLastWinnerValue(b => b.Wood);
+	public static float GetAverageRawFish2() => GetLastWinnerValue(b => b.Raw_fish);
+	public static float GetAverageCookedFish2() => GetLastWinnerValue(b => b.CookedFish);
 
 	
 
@@ -513,8 +574,9 @@ public double[] GetInputs()
 		
 		if (this.Hunger < 2)
 		{
+			if (this.Score == -1){
 		this.Score = score;
-		int scory = score + 10;
+			}
 		// change opacity of the blobly and make it orange
 		this.Modulate = new Color(1f, 1f, 1f, 0.08f);
 		// make it smaller
@@ -522,6 +584,7 @@ public double[] GetInputs()
 		this.ZIndex = 9;
 		return;
 		}
+		
 
 
 
@@ -639,6 +702,12 @@ public double[] GetInputs()
 		UpdateAnimation();
 
 	}
+
+    internal void Clear()
+    {
+        // clear the last winner
+		lastWinner = null;
+    }
 }
 
 
