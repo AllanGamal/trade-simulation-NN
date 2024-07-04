@@ -39,7 +39,9 @@ public partial class blobly : CharacterBody2D
 	private int score;
 	public NeuralNetwork NeuralNetwork
     {
+
         get => neuralNetwork;
+		set => neuralNetwork = value;
     }
 
 
@@ -87,10 +89,15 @@ public double[] Outputs
 			lastWinner.ZIndex = 15;
 		}
 		
-	
+		// scale the lastwinner
+		
+		
+		
+		
+		
+		
+		//GD.Print(visualizer.NeuralNetwork.Layers.Length);
 	}
-
-	
 
 	public blobly Clone()
     {
@@ -149,9 +156,8 @@ public double[] Outputs
 		blobly[] allBloblys = allInstances.ToArray();
 
 		
-
-
-		// if any blobly scoore that is not -1
+		
+		
 		if (allBloblys.Any(b => b.Score == -1))
 		{
 			return true;
@@ -160,27 +166,7 @@ public double[] Outputs
 		// change z-index of the blobly
 		return false;
 
-		/*
-		float averageHunger = GetAverageOfLowest10Percent(b => b.Hunger);
-
-		if (averageHunger < 15)
-		{
-			return false;
-		}
-		return true;
-		*/
-
-		/*
-		blobly[] survivors = allInstances.ToArray();
-		// sort by descending hunger
-		survivors = survivors.OrderByDescending(b => b.Hunger).ToArray();
-		int index = (survivors.Length / 2)+1;
-		if (survivors[index].Hunger < 15)
-		{
-			return false;
-		}
-		return true;
-		*/
+		
 	}
 
 	
@@ -276,13 +262,13 @@ public double[] GetInputs()
 	{
 		nextPosition = locations.get_position_lumberyard();
 		Get_resources(ref _shoppedTree, ref _skill_chopping_tree, 1.1f);
-		Eat(1.5f);
+		Eat(0.3f);
 	}
 
 	public void Chop_wood()
 	{
 		nextPosition = locations.get_position_workshop();
-		Eat(1.3f);
+		Eat(1.06f);
 		if (Shopped_tree < 1)
 		{
 			
@@ -318,7 +304,7 @@ public double[] GetInputs()
 		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 2.7f);
 
 	}
-	private static float res = 30f;
+	private static float res = 7f;
 	
 	
 	public static float Res {
@@ -570,8 +556,6 @@ public double[] GetInputs()
 	}
 	public void PerformRandomAction(int score)
 	{
-		
-		
 		if (this.Hunger < 2)
 		{
 			if (this.Score == -1){

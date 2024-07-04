@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 public class Layer
@@ -11,11 +12,23 @@ public class Layer
 	private double[,] weights;
 	private double[] biases;
 
+	public double[,] Weights
+    {
+        get => weights;
+        set => weights = value;
+    }
+
+    public double[] Biases
+    {
+        get => biases;
+        set => biases = value;
+    }
+
 	public Layer(int numInputsNodes, int numOutputNodes)
 	{
 		this.numInputsNodes = numInputsNodes;
 		this.numOutputNodes = numOutputNodes;
-		this.mutationRate = 0.25f;
+		this.mutationRate = 0.38f;
 
 		weights = new double[numInputsNodes, numOutputNodes];
 		biases = new double[numOutputNodes];
@@ -129,4 +142,27 @@ public void Mutate()
 		this.biases[i] = other.biases[i];
 	}
 }
+
+public Dictionary<string, object> Serialize()
+    {
+        return new Dictionary<string, object>
+        {
+            {"NumInputsNodes", numInputsNodes},
+            {"NumOutputsNodes", numOutputNodes},
+            {"Weights", weights},
+            {"Biases", biases}
+        };
+    }
+
+    public static Layer Deserialize(Dictionary<string, object> data)
+    {
+        int numInputs = (int)data["NumInputsNodes"];
+        int numOutputs = (int)data["NumOutputsNodes"];
+        Layer newLayer = new Layer(numInputs, numOutputs);
+
+        newLayer.weights = (double[,])data["Weights"];
+        newLayer.biases = (double[])data["Biases"];
+
+        return newLayer;
+    }
 }

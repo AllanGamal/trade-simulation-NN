@@ -186,18 +186,18 @@ private void OnActionTimerTimeout()
 		blobly.PerformRandomAction(count);
 	}
 	
-	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 20000)
+	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 10000)
 	{
 		
 		GD.Print("----------------------------");
 		if (count > highestCount){
 			highestCount=count;
 		}
-		if (count > 20000) {
-		GD.Print("Count above 20000!: " + count);
+		if (count > 10000) {
+		GD.Print("Count above 10000!: " + count);
 		if (blobly.Res > 2.53f){
 			
-		blobly.Res = blobly.Res*0.99f;
+		blobly.Res = blobly.Res*0.994f;
 		}
 		blobly.Res = blobly.Res*0.999f;
 		highestCount = 0;
@@ -245,21 +245,29 @@ private void OnActionTimerTimeout()
 		actionTimer.Stop();
 	}
 }
+ private float shoppedTreeRandom;
+    private float woodRandom;
+    private float fishingHooksRandom;
+    private float rawFishRandom;
+    private float cookedFishRandom;
+private void GenerateRandomValuesForIteration()
+{
+    Random randy = new Random();
+    shoppedTreeRandom = randy.Next(50, 1000);
+    woodRandom = randy.Next(50, 1000);
+    fishingHooksRandom = randy.Next(50, 1000);
+    rawFishRandom = randy.Next(50, 1000);
+    cookedFishRandom = randy.Next(50, 1000);
+}
+
 private void ReproduceTopHalfAndRemoveOthers()
 {
-	
-	/*
-    blobly[] sortedBloblys = blobly.AllInstances.OrderByDescending(b => b.Hunger).ToArray();
-	*/
-	blobly[] sortedBloblys = blobly.AllInstances.OrderByDescending(b => b.Score).ToArray();
+	GenerateRandomValuesForIteration();
+    blobly[] sortedBloblys = blobly.AllInstances.OrderByDescending(b => b.Score).ToArray();
     int halfPopulation = sortedBloblys.Length;
 
     // Keep the top 70%
-    var top30 = sortedBloblys.Take((int)(halfPopulation * 0.9f)).ToList();
-	// remove bottom half
-	
-	// remove bottom 70
-	
+    var top30 = sortedBloblys.Take((int)(halfPopulation * 0.95f)).ToList();
 
     // Remove all instances
     foreach (var blobly in blobly.AllInstances.ToList())
@@ -267,45 +275,52 @@ private void ReproduceTopHalfAndRemoveOthers()
         blobly.QueueFree();
     }
     blobly.AllInstances.Clear();
-	// allinstances = list ofnull
-
 
     Random rand = new Random();
-	blobly.LastWinner = null;
+    blobly.LastWinner = null;
     List<blobly> newPopulation = new List<blobly>();
 
-		blobly lastWinner = CreateNewBlobly(top30[0], false);
+    blobly lastWinner = CreateNewBlobly(top30[0], false);
 
-        newPopulation.Add(lastWinner);
-		blobly.LastWinner = lastWinner;
+    newPopulation.Add(lastWinner);
+    blobly.LastWinner = lastWinner;
     bool isFirstIteration = true; // Flag to check the first iteration
 
-while (newPopulation.Count < 1000)
-{
-    if (isFirstIteration)
+    blobly[] bottomHalf = sortedBloblys.Skip(halfPopulation / 2).ToArray(); // Get the bottom 50%
+
+    for (int i = 0; i < 100; i++)
     {
-        for (int i = 0; i < 15; i++)
-        {
-            blobly newBlobly = CreateNewBlobly(top30[0], true); 
-            newPopulation.Add(newBlobly);
-        }
-        isFirstIteration = false; 
+        int randomIndex = rand.Next(bottomHalf.Length); // Random index from the bottom half
+        blobly randomBloblyCopy = CreateNewBlobly(bottomHalf[randomIndex], true); // Assuming CreateNewBlobly creates a copy
+        newPopulation.Add(randomBloblyCopy); // Add the copy to the new population
     }
 
-    foreach (var parentBlobly in top30)
+    while (newPopulation.Count < 1000)
     {
-        if (newPopulation.Count >= 1000) break;
-
-        int index = top30.IndexOf(parentBlobly) + 1;
-        double probability = 1.00 - ((index - 1) * 0.001); // Adjust probability as needed
-
-        if (rand.NextDouble() <= probability)
+        if (isFirstIteration)
         {
-            blobly newBlobly = CreateNewBlobly(parentBlobly, true);
-            newPopulation.Add(newBlobly);
+            for (int i = 0; i < 3; i++)
+            {
+                blobly newBlobly = CreateNewBlobly(top30[0], true);
+                newPopulation.Add(newBlobly);
+            }
+            isFirstIteration = false;
+        }
+
+        foreach (var parentBlobly in top30)
+        {
+            if (newPopulation.Count >= 1000) break;
+
+            int index = top30.IndexOf(parentBlobly) + 1;
+            double probability = 1.00 - ((index - 1) * 0.003); // Adjust probability as needed
+
+            if (rand.NextDouble() <= probability)
+            {
+                blobly newBlobly = CreateNewBlobly(parentBlobly, true);
+                newPopulation.Add(newBlobly);
+            }
         }
     }
-}
 
     // Remove excess if needed
     while (newPopulation.Count > 1000)
@@ -322,30 +337,30 @@ while (newPopulation.Count < 1000)
         CallDeferred("add_child", newBlobly);
     }
 }
-
+Random randy = new Random();
 private blobly CreateNewBlobly(blobly parentBlobly, bool mutate)
 {
-	string path = "agent/blobly.tscn";
-	PackedScene packedScene = GD.Load<PackedScene>(path);
-	blobly newBlobly = packedScene.Instantiate<blobly>();
+    string path = "agent/blobly.tscn";
+    PackedScene packedScene = GD.Load<PackedScene>(path);
+    blobly newBlobly = packedScene.Instantiate<blobly>();
 
-	// Copy properties from parent to child
-	newBlobly.Hunger = 100;
-	newBlobly.Shopped_tree = 40;
-	newBlobly.Wood = 150;
-	newBlobly.Fishing_hooks = 100;
-	newBlobly.Raw_fish = 100;
-	newBlobly.CookedFish = 250;
-	newBlobly.Skill_cooking = 0;
-	newBlobly.Skill_chopping_tree = 0;
-	newBlobly.Skill_chopping_wood = 0;
-	newBlobly.Skill_fishing = 0;
-	newBlobly.Skill_craft_fishing_hooks = 0;
+    // Copy properties from parent to child
+    newBlobly.Hunger = 100;
+    newBlobly.Shopped_tree = shoppedTreeRandom;
+    newBlobly.Wood = woodRandom;
+    newBlobly.Fishing_hooks = fishingHooksRandom;
+    newBlobly.Raw_fish = rawFishRandom;
+    newBlobly.CookedFish = cookedFishRandom;
+    newBlobly.Skill_cooking = 0;
+    newBlobly.Skill_chopping_tree = 0;
+    newBlobly.Skill_chopping_wood = 0;
+    newBlobly.Skill_fishing = 0;
+    newBlobly.Skill_craft_fishing_hooks = 0;
 
-	// Copy neural network weights
-	newBlobly.NeuralNetwork.CopyWeightsFrom(parentBlobly.NeuralNetwork, mutate);
+    // Copy neural network weights
+    newBlobly.NeuralNetwork.CopyWeightsFrom(parentBlobly.NeuralNetwork, mutate);
 
-	return newBlobly;
+    return newBlobly;
 }
 
 }
