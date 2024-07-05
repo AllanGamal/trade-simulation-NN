@@ -186,15 +186,15 @@ private void OnActionTimerTimeout()
 		blobly.PerformRandomAction(count);
 	}
 	
-	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 10000)
+	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 2000)
 	{
 		
 		GD.Print("----------------------------");
 		if (count > highestCount){
 			highestCount=count;
 		}
-		if (count > 10000) {
-		GD.Print("Count above 10000!: " + count);
+		if (count > 2000) {
+		GD.Print("Count above 2000!: " + count);
 		if (blobly.Res > 2.53f){
 			
 		blobly.Res = blobly.Res*0.994f;
@@ -346,11 +346,11 @@ private blobly CreateNewBlobly(blobly parentBlobly, bool mutate)
 
     // Copy properties from parent to child
     newBlobly.Hunger = 100;
-    newBlobly.Shopped_tree = shoppedTreeRandom;
-    newBlobly.Wood = woodRandom;
-    newBlobly.Fishing_hooks = fishingHooksRandom;
-    newBlobly.Raw_fish = rawFishRandom;
-    newBlobly.CookedFish = cookedFishRandom;
+    newBlobly.Shopped_tree = 0;
+    newBlobly.Wood = 0;
+    newBlobly.Fishing_hooks = 0;
+    newBlobly.Raw_fish = 0;
+    newBlobly.CookedFish = 250;
     newBlobly.Skill_cooking = 0;
     newBlobly.Skill_chopping_tree = 0;
     newBlobly.Skill_chopping_wood = 0;

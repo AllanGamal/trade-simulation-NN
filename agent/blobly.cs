@@ -12,11 +12,11 @@ public partial class blobly : CharacterBody2D
 
 	// resources
 	private float _hunger = 100;
-	private float _shoppedTree = 40;
-	private float _wood = 80;
-	private float _fishingHooks = 100;
-	private float _rawFish = 100;
-	private float _cookedFish = 80;
+	private float _shoppedTree = 0;
+	private float _wood = 0;
+	private float _fishingHooks = 0;
+	private float _rawFish = 0;
+	private float _cookedFish = 200;
 
 	
 
@@ -74,7 +74,7 @@ public double[] Outputs
 	public blobly()
 	{
 		allInstances.Add(this);
-		neuralNetwork = new NeuralNetwork(11, 32, 16, 5);
+		neuralNetwork = new NeuralNetwork(11, 32, 16, 16, 5);
 		outputs = new double[] {0,0,0,0,0};
 		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
 		this.score = -1;
@@ -262,13 +262,13 @@ public double[] GetInputs()
 	{
 		nextPosition = locations.get_position_lumberyard();
 		Get_resources(ref _shoppedTree, ref _skill_chopping_tree, 1.1f);
-		Eat(0.3f);
+		Eat(1.0f);
 	}
 
 	public void Chop_wood()
 	{
 		nextPosition = locations.get_position_workshop();
-		Eat(1.06f);
+		Eat(1.0f);
 		if (Shopped_tree < 1)
 		{
 			
@@ -281,7 +281,7 @@ public double[] GetInputs()
 	public void Fish()
 	{
 		nextPosition = locations.get_position_fishingLake();
-		Eat(1.02f);
+		Eat(1.0f);
 		if (Fishing_hooks < 4)
 		{
 			
@@ -294,7 +294,7 @@ public double[] GetInputs()
 	public void Craft_fishing_hooks()
 	{
 		nextPosition = locations.get_position_workshop();
-		Eat(1.01f);
+		Eat(1.0f);
 		if (Wood < 1)
 		{
 			
@@ -314,7 +314,7 @@ public double[] GetInputs()
 	public void Cook()
 	{
 		nextPosition = locations.get_position_kitchen();
-		Eat(1.04f);
+		Eat(1.0f);
 		if (Raw_fish < 3 || Wood < 4)
 		{
 			
@@ -559,7 +559,7 @@ public double[] GetInputs()
 		if (this.Hunger < 2)
 		{
 			if (this.Score == -1){
-		this.Score = score;
+		this.Score = score*50+(int)(this.Wood/20)+(int)(this.Fishing_hooks/5)+(int)((this.Raw_fish)*3);
 			}
 		// change opacity of the blobly and make it orange
 		this.Modulate = new Color(1f, 1f, 1f, 0.08f);
