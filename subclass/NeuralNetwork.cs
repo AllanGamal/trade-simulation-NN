@@ -12,7 +12,6 @@ public class NeuralNetwork
 
     private static List<NeuralNetwork> savedNetworks = new List<NeuralNetwork>();
 
-  
 
     // get and set for savedNetworks
     public static List<NeuralNetwork> SavedNetworks
@@ -21,22 +20,25 @@ public class NeuralNetwork
         set => savedNetworks = value;
     }
 
-    // clear savedNetworks
-    public void ClearSavedNetworks()
-    {
-        savedNetworks.Clear();
-    }
-
-
-    
 
     public NeuralNetwork(params int[] layersSized)
     {
         layers = new Layer[layersSized.Length - 1];
         allLayerOutputs = new List<double[]>();
+        
         for (int i = 0; i < layersSized.Length - 1; i++)
         {
-            layers[i] = new Layer(layersSized[i], layersSized[i + 1]);
+            ActivationType activationType;
+            if (i == layersSized.Length - 2)  // Last layer
+            {
+                activationType = ActivationType.Softmax;
+            }
+            else
+            {
+                activationType = ActivationType.ReLU;
+            }
+            
+            layers[i] = new Layer(layersSized[i], layersSized[i + 1], activationType);
         }
     }
 
@@ -70,11 +72,5 @@ public class NeuralNetwork
             }
         }
     }
-    public NeuralNetwork Clone(Boolean mutate)
-    {
-        var clone = new NeuralNetwork(this.layers.Length);
-        clone.CopyWeightsFrom(this, mutate);
-        return clone;
-    }
-    
+  
 }

@@ -36,6 +36,8 @@ public partial class world : Node2D
 		for (int i = 0; i < 999; i++)
 		{
 			blobly blobly = packedScene.Instantiate<blobly>();
+			NeuralNetwork nn = Serialization.LoadNeuralNetworkFromJson("neural_network_data");
+			blobly.NeuralNetwork = nn;
 			CallDeferred("add_child", blobly);
 		}
 
@@ -185,21 +187,23 @@ private void OnActionTimerTimeout()
 	{
 		blobly.PerformRandomAction(count);
 	}
+
 	
-	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 2000)
+	
+	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 5000)
 	{
 		
 		GD.Print("----------------------------");
 		if (count > highestCount){
 			highestCount=count;
 		}
-		if (count > 2000) {
-		GD.Print("Count above 2000!: " + count);
+		if (count > 5000) {
+		GD.Print("Count above 5000!: " + count);
 		if (blobly.Res > 2.53f){
 			
-		blobly.Res = blobly.Res*0.994f;
+		blobly.Res = blobly.Res*0.990f;
 		}
-		blobly.Res = blobly.Res*0.999f;
+		blobly.Res = blobly.Res*0.994f;
 		highestCount = 0;
 	
 	}
@@ -267,7 +271,7 @@ private void ReproduceTopHalfAndRemoveOthers()
     int halfPopulation = sortedBloblys.Length;
 
     // Keep the top 70%
-    var top30 = sortedBloblys.Take((int)(halfPopulation * 0.95f)).ToList();
+    var top30 = sortedBloblys.Take((int)(halfPopulation * 0.35f)).ToList();
 
     // Remove all instances
     foreach (var blobly in blobly.AllInstances.ToList())
@@ -281,6 +285,8 @@ private void ReproduceTopHalfAndRemoveOthers()
     List<blobly> newPopulation = new List<blobly>();
 
     blobly lastWinner = CreateNewBlobly(top30[0], false);
+	
+	Serialization.SaveNeuralNetworkToJson(lastWinner.NeuralNetwork, "neural_network_data");
 
     newPopulation.Add(lastWinner);
     blobly.LastWinner = lastWinner;
@@ -299,7 +305,7 @@ private void ReproduceTopHalfAndRemoveOthers()
     {
         if (isFirstIteration)
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 7; i++)
             {
                 blobly newBlobly = CreateNewBlobly(top30[0], true);
                 newPopulation.Add(newBlobly);
@@ -312,7 +318,7 @@ private void ReproduceTopHalfAndRemoveOthers()
             if (newPopulation.Count >= 1000) break;
 
             int index = top30.IndexOf(parentBlobly) + 1;
-            double probability = 1.00 - ((index - 1) * 0.003); // Adjust probability as needed
+            double probability = 1.00 - ((index - 1) * 0.001); // Adjust probability as needed
 
             if (rand.NextDouble() <= probability)
             {
@@ -350,7 +356,7 @@ private blobly CreateNewBlobly(blobly parentBlobly, bool mutate)
     newBlobly.Wood = 0;
     newBlobly.Fishing_hooks = 0;
     newBlobly.Raw_fish = 0;
-    newBlobly.CookedFish = 250;
+    newBlobly.CookedFish = 70;
     newBlobly.Skill_cooking = 0;
     newBlobly.Skill_chopping_tree = 0;
     newBlobly.Skill_chopping_wood = 0;

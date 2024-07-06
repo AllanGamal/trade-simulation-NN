@@ -16,7 +16,7 @@ public partial class blobly : CharacterBody2D
 	private float _wood = 0;
 	private float _fishingHooks = 0;
 	private float _rawFish = 0;
-	private float _cookedFish = 200;
+	private float _cookedFish = 70;
 
 	
 
@@ -74,7 +74,7 @@ public double[] Outputs
 	public blobly()
 	{
 		allInstances.Add(this);
-		neuralNetwork = new NeuralNetwork(11, 32, 16, 16, 5);
+		neuralNetwork = new NeuralNetwork(11, 64, 16, 8, 5);
 		outputs = new double[] {0,0,0,0,0};
 		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
 		this.score = -1;
@@ -89,14 +89,26 @@ public double[] Outputs
 			lastWinner.ZIndex = 15;
 		}
 		
-		// scale the lastwinner
+	}
+
+	public blobly(NeuralNetwork neuralNetwork)
+	{
+		allInstances.Add(this);
+		this.neuralNetwork = neuralNetwork;
+		outputs = new double[] {0,0,0,0,0};
+		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
+		this.score = -1;
+		this.ZIndex = 10;
 		
-		
-		
-		
-		
-		
-		//GD.Print(visualizer.NeuralNetwork.Layers.Length);
+		// change color of last winner
+
+		if (lastWinner != null)
+		{
+			
+			lastWinner.Scale = new Vector2(5f, 5f);
+			lastWinner.ZIndex = 15;
+		}
+
 	}
 
 	public blobly Clone()
@@ -269,7 +281,7 @@ public double[] GetInputs()
 	{
 		nextPosition = locations.get_position_workshop();
 		Eat(1.0f);
-		if (Shopped_tree < 1)
+		if (Shopped_tree < 1 || Wood > 999)
 		{
 			
 			return;
@@ -282,7 +294,7 @@ public double[] GetInputs()
 	{
 		nextPosition = locations.get_position_fishingLake();
 		Eat(1.0f);
-		if (Fishing_hooks < 4)
+		if (Fishing_hooks < 4 || Raw_fish > 999)
 		{
 			
 			return;
@@ -295,7 +307,7 @@ public double[] GetInputs()
 	{
 		nextPosition = locations.get_position_workshop();
 		Eat(1.0f);
-		if (Wood < 1)
+		if (Wood < 1 || Fishing_hooks > 999)
 		{
 			
 			return;
@@ -304,7 +316,7 @@ public double[] GetInputs()
 		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 2.7f);
 
 	}
-	private static float res = 7f;
+	private static float res = 2.9f;
 	
 	
 	public static float Res {
@@ -315,7 +327,7 @@ public double[] GetInputs()
 	{
 		nextPosition = locations.get_position_kitchen();
 		Eat(1.0f);
-		if (Raw_fish < 3 || Wood < 4)
+		if (Raw_fish < 3 || Wood < 4 || CookedFish > 999)
 		{
 			
 			return;
@@ -556,10 +568,19 @@ public double[] GetInputs()
 	}
 	public void PerformRandomAction(int score)
 	{
+		int extra = 0;
+		if (blobly.AllInstances.Count(b => b.Score == -1) == 1)
+		{
+			this.Hunger = 1;
+			extra = 100000;
+
+		}
+		
+
 		if (this.Hunger < 2)
 		{
 			if (this.Score == -1){
-		this.Score = score*50+(int)(this.Wood/20)+(int)(this.Fishing_hooks/5)+(int)((this.Raw_fish)*3);
+		this.Score = score*10000+(int)(this.Wood/15)+(int)(this.Fishing_hooks)+(int)((this.Raw_fish)*15) + extra;
 			}
 		// change opacity of the blobly and make it orange
 		this.Modulate = new Color(1f, 1f, 1f, 0.08f);
