@@ -35,10 +35,21 @@ public partial class world : Node2D
 
 		for (int i = 0; i < 999; i++)
 		{
+			for (int j = 0; j < 10; j++) {
+				if (blobly.AllInstances.Count < 999)
+				{
+					blobly blobly = packedScene.Instantiate<blobly>();
+					NeuralNetwork nn = Serialization.LoadNeuralNetworkFromJson("weights_and_biases/neural_network_data_" + j);
+					blobly.NeuralNetwork = nn;
+					CallDeferred("add_child", blobly);
+				}
+			}
+			/*
 			blobly blobly = packedScene.Instantiate<blobly>();
 			NeuralNetwork nn = Serialization.LoadNeuralNetworkFromJson("neural_network_data");
 			blobly.NeuralNetwork = nn;
 			CallDeferred("add_child", blobly);
+			*/
 		}
 
 	}
@@ -75,9 +86,6 @@ public partial class world : Node2D
 		woodChart2 = InstantiateOneChart(new Vector2(856, 870), "Wood", new Vector2(425, 125),
 			blobly.GetAverageWood2);	
 
-
-
-		
 		// Configure and start the timer
 		actionTimer = new Timer();
 		actionTimer.WaitTime = 0.01; // 0.01 second
@@ -86,6 +94,7 @@ public partial class world : Node2D
 		AddChild(actionTimer);
 		actionTimer.Start();
 	}
+
 
 	private chart InstantiateThreeCharts(Vector2 offset, string title, Vector2 chartSize,
 		chart.UpdateValueDelegate getValueMethod1,
@@ -174,6 +183,7 @@ public partial class world : Node2D
 		rawFishChart2.UpdateGraph(
 			blobly.GetAverageRawFish2()
 		);
+	
 
 	}
 private int visualizationUpdateCounter = 0;
@@ -182,6 +192,14 @@ private void OnActionTimerTimeout()
 {
 
 		count++;		
+		if (count % 1000 == 0)
+		{
+			GD.Print("---------------------------");
+			GD.Print("Fitness:: " + count);
+			// number of bloblys that has score = -1
+			GD.Print("Population size: " + blobly.AllInstances.Count(b => b.Score == -1));
+			
+		}
 	// Make each blobly perform an action
 	foreach (var blobly in blobly.AllInstances.ToArray())
 	{
@@ -190,15 +208,15 @@ private void OnActionTimerTimeout()
 
 	
 	
-	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 5000)
+	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 20000)
 	{
 		
 		GD.Print("----------------------------");
 		if (count > highestCount){
 			highestCount=count;
 		}
-		if (count > 5000) {
-		GD.Print("Count above 5000!: " + count);
+		if (count > 20000) {
+		GD.Print("Count above 20000!: " + count);
 		if (blobly.Res > 2.53f){
 			
 		blobly.Res = blobly.Res*0.990f;
@@ -287,6 +305,11 @@ private void ReproduceTopHalfAndRemoveOthers()
     blobly lastWinner = CreateNewBlobly(top30[0], false);
 	
 	Serialization.SaveNeuralNetworkToJson(lastWinner.NeuralNetwork, "neural_network_data");
+	// save top 10
+	for (int i = 0; i < 10; i++)
+	{
+		Serialization.SaveNeuralNetworkToJson(top30[i].NeuralNetwork, "neural_network_data_" + i);
+	}
 
     newPopulation.Add(lastWinner);
     blobly.LastWinner = lastWinner;

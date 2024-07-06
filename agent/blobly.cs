@@ -316,7 +316,7 @@ public double[] GetInputs()
 		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 2.7f);
 
 	}
-	private static float res = 2.9f;
+	private static float res = 2.66f;
 	
 	
 	public static float Res {
