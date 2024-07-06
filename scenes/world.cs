@@ -2,6 +2,8 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public partial class world : Node2D
 {
@@ -44,38 +46,38 @@ public partial class world : Node2D
 	public override void _Ready()
 	{
 		spawn_blobly();
-		
+
 
 
 		hungerChart = InstantiateThreeCharts(new Vector2(1281, 1), "Hunger", new Vector2(600, 250),
 			blobly.GetAverageOfHungerOfTheHighest10Percent, blobly.GetAverageHunger, blobly.GetAverageOfHungerOfTheLowest10Percent);
-		fishingHooksChart = InstantiateThreeCharts(new Vector2(1883, 1), "Fishing Hooks",new Vector2(600, 250),
+		fishingHooksChart = InstantiateThreeCharts(new Vector2(1883, 1), "Fishing Hooks", new Vector2(600, 250),
 			blobly.GetAverageOfFishingHooksOfTheHighest10Percent, blobly.GetAverageFishingHooks, blobly.GetAverageOfFishingHooksOfTheLowest10Percent);
-		cookedFishChart = InstantiateThreeCharts(new Vector2(1281, 350), "Cooked Fish",new Vector2(600, 250),
+		cookedFishChart = InstantiateThreeCharts(new Vector2(1281, 350), "Cooked Fish", new Vector2(600, 250),
 			blobly.GetAverageOfCookedFishOfTheHighest10Percent, blobly.GetAverageCookedFish, blobly.GetAverageOfCookedFishOfTheLowest10Percent);
-		rawFishChart = InstantiateThreeCharts(new Vector2(1883, 350), "Raw Fish",new Vector2(600, 250),
+		rawFishChart = InstantiateThreeCharts(new Vector2(1883, 350), "Raw Fish", new Vector2(600, 250),
 			blobly.GetAverageOfRawFishOfTheHighest10Percent, blobly.GetAverageRawFish, blobly.GetAverageOfRawFishOfTheLowest10Percent);
-		shoppedTreeChart = InstantiateThreeCharts(new Vector2(1281, 700), "Shopped Trees",new Vector2(600, 250),
+		shoppedTreeChart = InstantiateThreeCharts(new Vector2(1281, 700), "Shopped Trees", new Vector2(600, 250),
 			blobly.GetAverageOfShoppedTreeOfTheHighest10Percent, blobly.GetAverageShoppedTree, blobly.GetAverageOfShoppedTreeOfTheLowest10Percent);
 		woodChart = InstantiateThreeCharts(new Vector2(1883, 700), "Wood", new Vector2(600, 250),
 			blobly.GetAverageOfWoodOfTheHighest10Percent, blobly.GetAverageWood, blobly.GetAverageOfWoodOfTheLowest10Percent);
 
 		hungerChart2 = InstantiateOneChart(new Vector2(1, 724), "Hunger", new Vector2(425, 125),
 			blobly.GetAverageHunger2);
-		fishingHooksChart2 = InstantiateOneChart(new Vector2(1, 870), "Fishing Hooks",new Vector2(425, 125),
+		fishingHooksChart2 = InstantiateOneChart(new Vector2(1, 870), "Fishing Hooks", new Vector2(425, 125),
 			blobly.GetAverageFishingHooks2);
-		cookedFishChart2 = InstantiateOneChart(new Vector2(428, 724), "Cooked Fish",new Vector2(425, 125),
+		cookedFishChart2 = InstantiateOneChart(new Vector2(428, 724), "Cooked Fish", new Vector2(425, 125),
 			blobly.GetAverageCookedFish2);
-		rawFishChart2 = InstantiateOneChart(new Vector2(428, 870), "Raw Fish",new Vector2(425, 125),
+		rawFishChart2 = InstantiateOneChart(new Vector2(428, 870), "Raw Fish", new Vector2(425, 125),
 			blobly.GetAverageRawFish2);
-		shoppedTreeChart2 = InstantiateOneChart(new Vector2(856, 724), "Shopped Trees",new Vector2(425, 125),
+		shoppedTreeChart2 = InstantiateOneChart(new Vector2(856, 724), "Shopped Trees", new Vector2(425, 125),
 			blobly.GetAverageShoppedTree2);
 		woodChart2 = InstantiateOneChart(new Vector2(856, 870), "Wood", new Vector2(425, 125),
-			blobly.GetAverageWood2);	
+			blobly.GetAverageWood2);
 
 
 
-		
+
 		// Configure and start the timer
 		actionTimer = new Timer();
 		actionTimer.WaitTime = 0.01; // 0.01 second
@@ -109,18 +111,35 @@ public partial class world : Node2D
 		AddChild(newChart);
 		return newChart;
 	}
-	
-	
+
+
 
 	public override void _Process(double delta)
 	{
 		if (Input.IsActionJustPressed("left_click"))
 		{
-			GD.Print("Left click pressed");
-			UpdateAllGraphs();
-			neuralNetworkVisualizer.UpdateDrawNodes();
+			GD.Print("Left click pressed");	
+			// print this directory
+			GD.Print("Directory: " + System.IO.Directory.GetCurrentDirectory());
+			// get the json file with filename "neural_network_data"
+			NeuralNetwork nn = Serialization.LoadNeuralNetworkFromJson("neural_network_data");
+
+
+	blobly blobly = new blobly(nn);	
+
+			GD.Print("Layers: " + blobly.NeuralNetwork.Layers[0].Weights[0, 2]);
+			GD.Print("Layers: " + blobly.NeuralNetwork.Layers[1].Biases[15]);
+			
+
+
 		}
 	}
+
+	
+	
+
+
+
 
 	private void UpdateAllGraphs()
 	{
@@ -174,193 +193,203 @@ public partial class world : Node2D
 		);
 
 	}
-private int visualizationUpdateCounter = 0;
-private const int VISUALIZATION_UPDATE_FREQUENCY = 10;
-private void OnActionTimerTimeout()
-{
-
-		count++;		
-	// Make each blobly perform an action
-	foreach (var blobly in blobly.AllInstances.ToArray())
+	private int visualizationUpdateCounter = 0;
+	private const int VISUALIZATION_UPDATE_FREQUENCY = 10;
+	private void OnActionTimerTimeout()
 	{
-		blobly.PerformRandomAction(count);
-	}
-	
-	if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 2000)
-	{
-		
-		GD.Print("----------------------------");
-		if (count > highestCount){
-			highestCount=count;
-		}
-		if (count > 2000) {
-		GD.Print("Count above 2000!: " + count);
-		if (blobly.Res > 2.53f){
-			
-		blobly.Res = blobly.Res*0.994f;
-		}
-		blobly.Res = blobly.Res*0.999f;
-		highestCount = 0;
-	
-	}
-	
-		iteration++;
-		GD.Print("Iteration: " + iteration);
-		GD.Print("Res: " + blobly.Res);
-		GD.Print("Count: " + count);
-		GD.Print("Highest Count: " + highestCount);
-		count = 0;
-		
-		
-		
 
-
-		ReproduceTopHalfAndRemoveOthers();
-		
-		// Uppdatera neural network visualizer med en ny blobly
-		visualizationUpdateCounter++;
-		if (visualizationUpdateCounter >= VISUALIZATION_UPDATE_FREQUENCY)
+		count++;
+		// Make each blobly perform an action
+		foreach (var blobly in blobly.AllInstances.ToArray())
 		{
-			
-			
-			visualizationUpdateCounter = 0;
-		}
-	}
-	
+			blobly.PerformRandomAction(count);
 
-	// Kontrollera om det finns några bloblys kvar
-	if (blobly.AllInstances.Count > 0)
-	{
-		iterationsSinceLastGraphUpdate++;
-		if (iterationsSinceLastGraphUpdate >= 10)
+		}
+
+		// if there is only one blobly whose score is -1
+		//if (blobly.AllInstances.Count == 1 && blobly.AllInstances[0].Score == -1)
+		if (blobly.AllInstances.Count(b => b.Score == -1) == 1)
 		{
-			UpdateAllGraphs();
-			
-			iterationsSinceLastGraphUpdate = 0;
+			// get the highest score blobly
+			int highestScore = blobly.AllInstances.OrderByDescending(b => b.Score).First().Score;
+			blobly.AllInstances[0].Score = highestScore + 10;
+			blobly.AllInstances[0].Hunger = 1;
+
+		}
+
+		if (!blobly.IsHalfPopulationAboveMinimalHunger() || count > 9500)
+		{
+
+			GD.Print("----------------------------");
+			if (count > highestCount)
+			{
+				highestCount = count;
+			}
+			if (count > 9500)
+			{
+				GD.Print("Count above 9500!: " + count);
+				if (blobly.Res > 2.53f)
+				{
+
+					blobly.Res = blobly.Res * 0.994f;
+				}
+				blobly.Res = blobly.Res * 0.999f;
+				highestCount = 0;
+
+			}
+
+			iteration++;
+			GD.Print("Iteration: " + iteration);
+			GD.Print("Res: " + blobly.Res);
+			GD.Print("Count: " + count);
+			GD.Print("Highest Count: " + highestCount);
+			count = 0;
+
+
+
+
+
+			ReproduceTopHalfAndRemoveOthers();
+
+			// Uppdatera neural network visualizer med en ny blobly
+			visualizationUpdateCounter++;
+			if (visualizationUpdateCounter >= VISUALIZATION_UPDATE_FREQUENCY)
+			{
+
+
+				visualizationUpdateCounter = 0;
+			}
+		}
+
+
+		// Kontrollera om det finns några bloblys kvar
+		if (blobly.AllInstances.Count > 0)
+		{
+			iterationsSinceLastGraphUpdate++;
+			if (iterationsSinceLastGraphUpdate >= 10)
+			{
+				UpdateAllGraphs();
+
+				iterationsSinceLastGraphUpdate = 0;
+			}
+		}
+		else
+		{
+			GD.Print("No bloblys left. Stopping updates.");
+			actionTimer.Stop();
 		}
 	}
-	else
+	private float shoppedTreeRandom;
+	private float woodRandom;
+	private float fishingHooksRandom;
+	private float rawFishRandom;
+	private float cookedFishRandom;
+	private void GenerateRandomValuesForIteration()
 	{
-		GD.Print("No bloblys left. Stopping updates.");
-		actionTimer.Stop();
+		Random randy = new Random();
+		shoppedTreeRandom = randy.Next(50, 1000);
+		woodRandom = randy.Next(50, 1000);
+		fishingHooksRandom = randy.Next(50, 1000);
+		rawFishRandom = randy.Next(50, 1000);
+		cookedFishRandom = randy.Next(50, 1000);
 	}
-}
- private float shoppedTreeRandom;
-    private float woodRandom;
-    private float fishingHooksRandom;
-    private float rawFishRandom;
-    private float cookedFishRandom;
-private void GenerateRandomValuesForIteration()
-{
-    Random randy = new Random();
-    shoppedTreeRandom = randy.Next(50, 1000);
-    woodRandom = randy.Next(50, 1000);
-    fishingHooksRandom = randy.Next(50, 1000);
-    rawFishRandom = randy.Next(50, 1000);
-    cookedFishRandom = randy.Next(50, 1000);
-}
 
-private void ReproduceTopHalfAndRemoveOthers()
-{
-	GenerateRandomValuesForIteration();
-    blobly[] sortedBloblys = blobly.AllInstances.OrderByDescending(b => b.Score).ToArray();
-    int halfPopulation = sortedBloblys.Length;
+	private void ReproduceTopHalfAndRemoveOthers()
+	{
+		GenerateRandomValuesForIteration();
+		blobly[] sortedBloblys = blobly.AllInstances.OrderByDescending(b => b.Score).ToArray();
+		int halfPopulation = sortedBloblys.Length;
 
-    // Keep the top 70%
-    var top30 = sortedBloblys.Take((int)(halfPopulation * 0.95f)).ToList();
+		// Keep the top 70%
+		var top30 = sortedBloblys.Take((int)(halfPopulation * 0.4f)).ToList();
 
-    // Remove all instances
-    foreach (var blobly in blobly.AllInstances.ToList())
-    {
-        blobly.QueueFree();
-    }
-    blobly.AllInstances.Clear();
+		// Remove all instances
+		foreach (var blobly in blobly.AllInstances.ToList())
+		{
+			blobly.QueueFree();
+		}
+		blobly.AllInstances.Clear();
 
-    Random rand = new Random();
-    blobly.LastWinner = null;
-    List<blobly> newPopulation = new List<blobly>();
+		Random rand = new Random();
+		blobly.LastWinner = null;
+		List<blobly> newPopulation = new List<blobly>();
 
-    blobly lastWinner = CreateNewBlobly(top30[0], false);
+		blobly lastWinner = CreateNewBlobly(top30[0], false);
 
-    newPopulation.Add(lastWinner);
-    blobly.LastWinner = lastWinner;
-    bool isFirstIteration = true; // Flag to check the first iteration
+		Serialization.SaveNeuralNetworkToJson(lastWinner.NeuralNetwork, "neural_network_data");
 
-    blobly[] bottomHalf = sortedBloblys.Skip(halfPopulation / 2).ToArray(); // Get the bottom 50%
 
-    for (int i = 0; i < 100; i++)
-    {
-        int randomIndex = rand.Next(bottomHalf.Length); // Random index from the bottom half
-        blobly randomBloblyCopy = CreateNewBlobly(bottomHalf[randomIndex], true); // Assuming CreateNewBlobly creates a copy
-        newPopulation.Add(randomBloblyCopy); // Add the copy to the new population
-    }
+		newPopulation.Add(lastWinner);
+		blobly.LastWinner = lastWinner;
+		bool isFirstIteration = true; // Flag to check the first iteration
 
-    while (newPopulation.Count < 1000)
-    {
-        if (isFirstIteration)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                blobly newBlobly = CreateNewBlobly(top30[0], true);
-                newPopulation.Add(newBlobly);
-            }
-            isFirstIteration = false;
-        }
 
-        foreach (var parentBlobly in top30)
-        {
-            if (newPopulation.Count >= 1000) break;
+		while (newPopulation.Count < 1000)
+		{
+			if (isFirstIteration)
+			{
+				for (int i = 0; i < 7; i++)
+				{
+					blobly newBlobly = CreateNewBlobly(top30[0], true);
+					newPopulation.Add(newBlobly);
+				}
+				isFirstIteration = false;
+			}
 
-            int index = top30.IndexOf(parentBlobly) + 1;
-            double probability = 1.00 - ((index - 1) * 0.003); // Adjust probability as needed
+			foreach (var parentBlobly in top30)
+			{
+				if (newPopulation.Count >= 1000) break;
 
-            if (rand.NextDouble() <= probability)
-            {
-                blobly newBlobly = CreateNewBlobly(parentBlobly, true);
-                newPopulation.Add(newBlobly);
-            }
-        }
-    }
+				int index = top30.IndexOf(parentBlobly) + 1;
+				double probability = 1.00 - ((index - 1) * 0.001); // Adjust probability as needed
 
-    // Remove excess if needed
-    while (newPopulation.Count > 1000)
-    {
-        int indexToRemove = rand.Next(newPopulation.Count);
-        blobly bloblyToRemove = newPopulation[indexToRemove];
-        newPopulation.RemoveAt(indexToRemove);
-        bloblyToRemove.QueueFree();
-    }
+				if (rand.NextDouble() <= probability)
+				{
+					blobly newBlobly = CreateNewBlobly(parentBlobly, true);
+					newPopulation.Add(newBlobly);
+				}
+			}
+		}
 
-    // Add new bloblys to the scene
-    foreach (var newBlobly in newPopulation)
-    {
-        CallDeferred("add_child", newBlobly);
-    }
-}
-Random randy = new Random();
-private blobly CreateNewBlobly(blobly parentBlobly, bool mutate)
-{
-    string path = "agent/blobly.tscn";
-    PackedScene packedScene = GD.Load<PackedScene>(path);
-    blobly newBlobly = packedScene.Instantiate<blobly>();
+		// Remove excess if needed
+		while (newPopulation.Count > 1000)
+		{
+			int indexToRemove = rand.Next(newPopulation.Count);
+			blobly bloblyToRemove = newPopulation[indexToRemove];
+			newPopulation.RemoveAt(indexToRemove);
+			bloblyToRemove.QueueFree();
+		}
 
-    // Copy properties from parent to child
-    newBlobly.Hunger = 100;
-    newBlobly.Shopped_tree = 0;
-    newBlobly.Wood = 0;
-    newBlobly.Fishing_hooks = 0;
-    newBlobly.Raw_fish = 0;
-    newBlobly.CookedFish = 250;
-    newBlobly.Skill_cooking = 0;
-    newBlobly.Skill_chopping_tree = 0;
-    newBlobly.Skill_chopping_wood = 0;
-    newBlobly.Skill_fishing = 0;
-    newBlobly.Skill_craft_fishing_hooks = 0;
+		// Add new bloblys to the scene
+		foreach (var newBlobly in newPopulation)
+		{
+			CallDeferred("add_child", newBlobly);
+		}
+	}
+	Random randy = new Random();
+	private blobly CreateNewBlobly(blobly parentBlobly, bool mutate)
+	{
+		string path = "agent/blobly.tscn";
+		PackedScene packedScene = GD.Load<PackedScene>(path);
+		blobly newBlobly = packedScene.Instantiate<blobly>();
 
-    // Copy neural network weights
-    newBlobly.NeuralNetwork.CopyWeightsFrom(parentBlobly.NeuralNetwork, mutate);
+		// Copy properties from parent to child
+		newBlobly.Hunger = 100;
+		newBlobly.Shopped_tree = 0;
+		newBlobly.Wood = 0;
+		newBlobly.Fishing_hooks = 0;
+		newBlobly.Raw_fish = 0;
+		newBlobly.CookedFish = 90;
+		newBlobly.Skill_cooking = 0;
+		newBlobly.Skill_chopping_tree = 0;
+		newBlobly.Skill_chopping_wood = 0;
+		newBlobly.Skill_fishing = 0;
+		newBlobly.Skill_craft_fishing_hooks = 0;
 
-    return newBlobly;
-}
+		// Copy neural network weights
+		newBlobly.NeuralNetwork.CopyWeightsFrom(parentBlobly.NeuralNetwork, mutate);
+
+		return newBlobly;
+	}
 
 }

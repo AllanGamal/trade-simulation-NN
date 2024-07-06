@@ -16,13 +16,7 @@ public partial class blobly : CharacterBody2D
 	private float _wood = 0;
 	private float _fishingHooks = 0;
 	private float _rawFish = 0;
-	private float _cookedFish = 200;
-
-	
-
-
-
-	
+	private float _cookedFish = 90;
 
 	// skills
 	private float _skillCooking = 0;
@@ -74,7 +68,7 @@ public double[] Outputs
 	public blobly()
 	{
 		allInstances.Add(this);
-		neuralNetwork = new NeuralNetwork(11, 32, 16, 16, 5);
+		neuralNetwork = new NeuralNetwork(11, 64, 16, 8, 5);
 		outputs = new double[] {0,0,0,0,0};
 		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
 		this.score = -1;
@@ -88,15 +82,26 @@ public double[] Outputs
 			lastWinner.Scale = new Vector2(5f, 5f);
 			lastWinner.ZIndex = 15;
 		}
+
+	}
+	public blobly(NeuralNetwork neuralNetwork)
+	{
+		allInstances.Add(this);
+		this.neuralNetwork = neuralNetwork;
+		outputs = new double[] {0,0,0,0,0};
+		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
+		this.score = -1;
+		this.ZIndex = 10;
 		
-		// scale the lastwinner
-		
-		
-		
-		
-		
-		
-		//GD.Print(visualizer.NeuralNetwork.Layers.Length);
+		// change color of last winner
+
+		if (lastWinner != null)
+		{
+			
+			lastWinner.Scale = new Vector2(5f, 5f);
+			lastWinner.ZIndex = 15;
+		}
+
 	}
 
 	public blobly Clone()
@@ -125,9 +130,6 @@ public double[] Outputs
         return clone;
     }
 
-
-
-	
 	
 	public void ChangeColor()
 	{
@@ -144,9 +146,7 @@ public double[] Outputs
 	
 		targetColor = new Color(0.0f + ratio, 1.0f - ratio, 0.0f); // green -> red
 		sprite.Modulate = targetColor;
-		
-		
-		
+
 
 	}
 
@@ -155,9 +155,7 @@ public double[] Outputs
 
 		blobly[] allBloblys = allInstances.ToArray();
 
-		
-		
-		
+
 		if (allBloblys.Any(b => b.Score == -1))
 		{
 			return true;
@@ -165,13 +163,8 @@ public double[] Outputs
 		
 		// change z-index of the blobly
 		return false;
-
 		
 	}
-
-	
-
-
 
 
 	private AnimationPlayer animations;
@@ -197,18 +190,10 @@ public double[] GetInputs()
 	};
 }
 
-
-
-
-
-	
-
 	~blobly()
 	{
 		allInstances.Remove(this);
 	}
-
-
 
 	public void Eat(float m)
 	{
@@ -261,6 +246,11 @@ public double[] GetInputs()
 	public void Chop_tree()
 	{
 		nextPosition = locations.get_position_lumberyard();
+		if (Shopped_tree > 999)
+		{
+			
+			return;
+		}
 		Get_resources(ref _shoppedTree, ref _skill_chopping_tree, 1.1f);
 		Eat(1.0f);
 	}
@@ -304,7 +294,7 @@ public double[] GetInputs()
 		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 2.7f);
 
 	}
-	private static float res = 7f;
+	private static float res = 3.7f;
 	
 	
 	public static float Res {
@@ -460,17 +450,6 @@ public double[] GetInputs()
 		float total = top50.Sum(selector);
 		return total / top50.Count;
 
-
-		/*
-
-		if (allInstances.Count == 0) return 0;
-
-		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.5);
-		var lowest10PercentInstances = allInstances.OrderBy(selector).Take(tenPercent);
-
-		float total = lowest10PercentInstances.Sum(selector);
-		return total / tenPercent;
-		*/
 	}
 
 	private static float GetAverageOfHighest10Percent(Func<blobly, float> selector)
@@ -483,16 +462,6 @@ public double[] GetInputs()
 
 		float total = top50.Sum(selector);
 		return total / top50.Count;
-
-		/*
-		if (allInstances.Count == 0) return 0;
-
-		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.5);
-		var highest10PercentInstances = allInstances.OrderByDescending(selector).Take(tenPercent);
-
-		float total = highest10PercentInstances.Sum(selector);
-		return total / tenPercent;
-		*/
 	}
 
 	private static float GetAverageOfLowest10Percent2(Func<blobly, float> selector)
@@ -556,23 +525,21 @@ public double[] GetInputs()
 	}
 	public void PerformRandomAction(int score)
 	{
+			
 		if (this.Hunger < 2)
 		{
-			if (this.Score == -1){
-		this.Score = score*50+(int)(this.Wood/20)+(int)(this.Fishing_hooks/5)+(int)((this.Raw_fish)*3);
-			}
-		// change opacity of the blobly and make it orange
+
+
+
+		this.Score = score*50000+(int)(this.Shopped_tree/30)+(int)(this.Wood/15)+(int)(this.Fishing_hooks)+(int)((this.Raw_fish)*15);
+		// change opacity of the blobly 
 		this.Modulate = new Color(1f, 1f, 1f, 0.08f);
 		// make it smaller
 		this.Scale = new Vector2(0.5f, 0.5f);
 		this.ZIndex = 9;
 		return;
 		}
-		
 
-
-
-		
 		List<Action> actions = new List<Action>
 		{
 			Chop_tree,
@@ -592,14 +559,10 @@ public double[] GetInputs()
 		// clear the outputs
 		outputs = new double[outputs.Length];
 
-		// Uppdatera neural network inputs och outputs här om det behövs
 		double[] inputs = GetInputs();
 		outputs = neuralNetwork.CalculateOutputs(inputs);
 		this.outputs = outputs;
-		// index of the highest output
-		//SetOutputs(outputs);
 
-		// Uppdatera position
 		
 	}
 
@@ -660,16 +623,11 @@ public double[] GetInputs()
 			Random randy = new Random();
 			
 			
-			
-
+		
 			double[] inputs = GetInputs();
 		double[] outputs = neuralNetwork.CalculateOutputs(inputs);
 		
-		//SetOutputs(outputs);
-			//GD.Print("Outputs: " + string.Join(", ", outputs));
-			
-			
-						
+				
 
 			clickPosition = nextPosition;
 

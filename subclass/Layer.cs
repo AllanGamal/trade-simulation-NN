@@ -1,9 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
+
+public enum ActivationType
+{
+    Sigmoid,
+    ReLU,
+    Softmax
+}
+
 
 public class Layer
 {
+	
 	private float mutationRate;
 	private int numInputsNodes;
 	private int numOutputNodes;
@@ -11,6 +21,7 @@ public class Layer
 
 	private double[,] weights;
 	private double[] biases;
+	private ActivationType activationType;
 
 	public double[,] Weights
     {
@@ -24,16 +35,17 @@ public class Layer
         set => biases = value;
     }
 
-	public Layer(int numInputsNodes, int numOutputNodes)
+	public Layer(int numInputsNodes, int numOutputNodes, ActivationType activationType)
 	{
 		this.numInputsNodes = numInputsNodes;
 		this.numOutputNodes = numOutputNodes;
-		this.mutationRate = 0.4f;
+		this.mutationRate = 0.115f;
 
 		weights = new double[numInputsNodes, numOutputNodes];
 		biases = new double[numOutputNodes];
 
 		InitializeWeightsAndBiases();
+		this.activationType = activationType;
 	}
 
 	 public float MutationRate
@@ -53,21 +65,40 @@ public class Layer
 	}
 
 	public double[] CalculateOutputs(double[] inputs)
-	{
-		double[] activations = new double[numOutputNodes];
+    {
+        double[] activations = new double[numOutputNodes];
 
-		for (int nodeOut = 0; nodeOut < numOutputNodes; nodeOut++)
-		{
-			double weightedInput = biases[nodeOut];
+        for (int nodeOut = 0; nodeOut < numOutputNodes; nodeOut++)
+        {
+            double weightedInput = biases[nodeOut];
 
-			for (int nodeIn = 0; nodeIn < numInputsNodes; nodeIn++)
-			{
-				weightedInput += inputs[nodeIn] * weights[nodeIn, nodeOut];
-			}
-			activations[nodeOut] = ActivationFunction(weightedInput);
-		}
-		return activations;
-	}
+            for (int nodeIn = 0; nodeIn < numInputsNodes; nodeIn++)
+            {
+                weightedInput += inputs[nodeIn] * weights[nodeIn, nodeOut];
+            }
+            activations[nodeOut] = weightedInput;
+        }
+
+        return ApplyActivation(activations);
+    }
+
+	private double[] ApplyActivation(double[] inputs)
+    {
+        switch (activationType)
+        {
+            case ActivationType.Sigmoid:
+                return inputs.Select(x => 1.0 / (1.0 + Math.Exp(-x))).ToArray();
+            case ActivationType.ReLU:
+                return inputs.Select(x => Math.Max(0, x)).ToArray();
+            case ActivationType.Softmax:
+                double max = inputs.Max();
+                double[] exp = inputs.Select(x => Math.Exp(x - max)).ToArray();
+                double sum = exp.Sum();
+                return exp.Select(x => x / sum).ToArray();
+            default:
+                throw new ArgumentException("Unknown activation type");
+        }
+    }
 
 	// Sigmoid
 	public double ActivationFunction(double weightedInput)
@@ -143,26 +174,4 @@ public void Mutate()
 	}
 }
 
-public Dictionary<string, object> Serialize()
-    {
-        return new Dictionary<string, object>
-        {
-            {"NumInputsNodes", numInputsNodes},
-            {"NumOutputsNodes", numOutputNodes},
-            {"Weights", weights},
-            {"Biases", biases}
-        };
-    }
-
-    public static Layer Deserialize(Dictionary<string, object> data)
-    {
-        int numInputs = (int)data["NumInputsNodes"];
-        int numOutputs = (int)data["NumOutputsNodes"];
-        Layer newLayer = new Layer(numInputs, numOutputs);
-
-        newLayer.weights = (double[,])data["Weights"];
-        newLayer.biases = (double[])data["Biases"];
-
-        return newLayer;
-    }
 }
