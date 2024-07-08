@@ -20,7 +20,6 @@ public partial class chart : Node2D
 
 	public chart(Vector2 graphSize)
 	{
-	
 		this.graphSize = graphSize;
 	}
 
@@ -68,34 +67,38 @@ public partial class chart : Node2D
 	{
 		Color[] colors = { Colors.AliceBlue, Colors.Red, Colors.Green };
 
-		// Check if there is only one line to draw
-		if (multiValues.Count == 1) {
+		if (multiValues.Count == 1)
+		{
 			var values = multiValues[0];
 			int startIndex = Math.Max(0, values.Count - maxPoints);
 			int visiblePoints = values.Count - startIndex;
-			for (int i = 0; i < visiblePoints - 1; i++) {
-				Vector2 start = ScalePoint(i, visiblePoints, 0); 
+			for (int i = 0; i < visiblePoints - 1; i++)
+			{
+				Vector2 start = ScalePoint(i, visiblePoints, 0);
 				Vector2 end = ScalePoint(i + 1, visiblePoints, 0);
-				DrawLine(offset + start, offset + end, colors[2], 2); 
+				DrawLine(offset + start, offset + end, colors[2], 2);
 			}
-			if (visiblePoints > 0) {
+			if (visiblePoints > 0)
+			{
 				Vector2 lastPoint = ScalePoint(visiblePoints - 1, visiblePoints, 0);
 				DrawCircle(offset + lastPoint, 2, colors[0]);
 			}
-			return; 
+			return;
 		}
 
-		// Existing logic for multiple lines
-		for (int lineIndex = 0; lineIndex < multiValues.Count; lineIndex++) {
+		for (int lineIndex = 0; lineIndex < multiValues.Count; lineIndex++)
+		{
 			var values = multiValues[lineIndex];
 			int startIndex = Math.Max(0, values.Count - maxPoints);
 			int visiblePoints = values.Count - startIndex;
-			for (int i = 0; i < visiblePoints - 1; i++) {
+			for (int i = 0; i < visiblePoints - 1; i++)
+			{
 				Vector2 start = ScalePoint(i, visiblePoints, lineIndex);
 				Vector2 end = ScalePoint(i + 1, visiblePoints, lineIndex);
 				DrawLine(offset + start, offset + end, colors[lineIndex % colors.Length], 3);
 			}
-			if (visiblePoints > 0) {
+			if (visiblePoints > 0)
+			{
 				Vector2 lastPoint = ScalePoint(visiblePoints - 1, visiblePoints, lineIndex);
 				DrawCircle(offset + lastPoint, 2, colors[lineIndex % colors.Length]);
 			}
@@ -109,41 +112,41 @@ public partial class chart : Node2D
 		return new Vector2(x, y);
 	}
 
-	private void DrawTitle()
+	public void DrawTitle()
 	{
 		if (!string.IsNullOrEmpty(title))
 		{
 			DrawString(font, offset + new Vector2(0, graphSize.Y + 13), title, HorizontalAlignment.Center, 150, 17);
 		}
 
-		if (GetValues.Count == 1) {
-			DrawString(font, offset + new Vector2(140, graphSize.Y + 15), GetValues[0]().ToString("F2"), HorizontalAlignment.Center, 150, 15, Colors.Red);
-		} else {
-
-		
-
-		for (int i = 0; i < GetValues.Count; i++)
+		if (GetValues.Count == 1)
 		{
-			Color color;
-			if (GetValues[i] != null)
+			DrawString(font, offset + new Vector2(140, graphSize.Y + 15), GetValues[0]().ToString("F2"), HorizontalAlignment.Center, 150, 15, Colors.Red);
+		}
+		else
+		{
+			for (int i = 0; i < GetValues.Count; i++)
 			{
-				if (i == 0)
+				Color color;
+				if (GetValues[i] != null)
 				{
-					color = Colors.Green;
+					if (i == 0)
+					{
+						color = Colors.Green;
+					}
+					else if (i == 1)
+					{
+						color = Colors.AliceBlue;
+					}
+					else
+					{
+						color = Colors.Red;
+					}
+					float value = GetValues[i]();
+					DrawString(font, offset + new Vector2(140, graphSize.Y + 15 + (i * 20)), value.ToString("F2"), HorizontalAlignment.Center, 150, 15, color);
 				}
-				else if (i == 1)
-				{
-					color = Colors.AliceBlue;
-				}
-				else
-				{
-					color = Colors.Red;
-				}
-				float value = GetValues[i]();
-				DrawString(font, offset + new Vector2(140, graphSize.Y + 15 + (i * 20)), value.ToString("F2"), HorizontalAlignment.Center, 150, 15, color);
 			}
 		}
-	}
 	}
 
 	public void UpdateGraph(params float[] newValues)

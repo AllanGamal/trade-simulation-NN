@@ -18,6 +18,7 @@ public partial class world : Node2D
 	private chart woodChart2;
 	private chart fishingHooksChart2;
 	private chart populationSizeChart;
+	
 	 private float shoppedTreeRandom;
     private float woodRandom;
     private float fishingHooksRandom;
@@ -28,6 +29,9 @@ public partial class world : Node2D
 
 	private int iteration = 0;
 	private int iterationsSinceLastGraphUpdate = 0;
+	private Label iterationLabel;
+private Label countLabel;
+private Label highestCountLabel;
 
 	private Timer actionTimer;
 
@@ -69,6 +73,32 @@ public partial class world : Node2D
 	public override void _Ready()
 	{
 		spawn_blobly();
+		iterationLabel = new Label();
+    iterationLabel.Position = new Vector2(800, 210);
+    iterationLabel.Theme = new Theme();
+    iterationLabel.Theme.DefaultFont = ResourceLoader.Load<Font>("res://misc/fonts/cmu-typewriter/Typewriter/cmuntb.ttf");
+    iterationLabel.Theme.DefaultFontSize = 40;
+	iterationLabel.Text = "Generation: " + iteration;
+    AddChild(iterationLabel);
+	// change color of the label to red
+
+
+    
+    countLabel = new Label();
+    countLabel.Position = new Vector2(800, 170);
+    countLabel.Theme = new Theme();
+    countLabel.Theme.DefaultFont = ResourceLoader.Load<Font>("res://misc/fonts/cmu-typewriter/Typewriter/cmuntb.ttf");
+    countLabel.Theme.DefaultFontSize = 40;
+    AddChild(countLabel);
+
+	// Create and add highest count label
+	highestCountLabel = new Label();
+	highestCountLabel.Position = new Vector2(800, 130);
+	highestCountLabel.Theme = new Theme();
+	highestCountLabel.Theme.DefaultFont = ResourceLoader.Load<Font>("res://misc/fonts/cmu-typewriter/Typewriter/cmuntb.ttf");
+	highestCountLabel.Theme.DefaultFontSize = 40;
+	AddChild(highestCountLabel);
+
 
 		hungerChart = InstantiateThreeCharts(new Vector2(1281, 1), "Hunger", new Vector2(600, 250),
 			blobly.GetAverageOfHungerOfOfHighestHalfForInitialScore, blobly.GetAverageHunger, blobly.GetAverageOfHungerOfLowestHalfForInitialScore);
@@ -206,7 +236,9 @@ public partial class world : Node2D
 
 private void OnActionTimerTimeout()
 {
-		count++;		
+		count++;	
+		highestCountLabel.Text = "Highest Fitness: " + highestCount;	
+		countLabel.Text = "Fitness: " + count;
 		if (count % 1000 == 0)
 		{
 			GD.Print("---------------------------");
@@ -238,6 +270,7 @@ private void OnActionTimerTimeout()
 	
 	}
 		iteration++;
+		iterationLabel.Text = "Generation: " + iteration;
 		GD.Print("Iteration: " + iteration);
 		GD.Print("Res: " + blobly.Res);
 		GD.Print("Fitness: " + count);
