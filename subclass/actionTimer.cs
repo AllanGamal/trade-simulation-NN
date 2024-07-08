@@ -25,6 +25,6 @@ public partial class actionTimer : Node2D
 	public void OnReadyTimerTimeout()
 	{
 		GD.Print("1 second has passed since _Ready was called");
-		// Perform actions that should happen after the delay here
+
 	}
 }

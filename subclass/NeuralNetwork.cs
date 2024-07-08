@@ -10,16 +10,6 @@ public class NeuralNetwork
     public Layer[] Layers => layers;
     public List<double[]> AllLayerOutputs => allLayerOutputs;
 
-    private static List<NeuralNetwork> savedNetworks = new List<NeuralNetwork>();
-
-
-    // get and set for savedNetworks
-    public static List<NeuralNetwork> SavedNetworks
-    {
-        get => savedNetworks;
-        set => savedNetworks = value;
-    }
-
 
     public NeuralNetwork(params int[] layersSized)
     {
@@ -29,7 +19,7 @@ public class NeuralNetwork
         for (int i = 0; i < layersSized.Length - 1; i++)
         {
             ActivationType activationType;
-            if (i == layersSized.Length - 2)  // Last layer
+            if (i == layersSized.Length - 2)  // last layer
             {
                 activationType = ActivationType.Softmax;
             }
@@ -56,7 +46,7 @@ public class NeuralNetwork
         return inputs;
     }
 
-    // Uppdaterad metod för att kopiera vikter och mutera
+   
     public void CopyWeightsFrom(NeuralNetwork other, Boolean mutate)
     {
         if (this.layers.Length != other.layers.Length)

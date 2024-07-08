@@ -18,12 +18,6 @@ public partial class blobly : CharacterBody2D
 	private float _rawFish = 0;
 	private float _cookedFish = 70;
 
-	
-
-
-
-	
-
 	// skills
 	private float _skillCooking = 0;
 	private float _skill_chopping_tree = 0;
@@ -32,20 +26,85 @@ public partial class blobly : CharacterBody2D
 	private float _skillCraftFishingHooks = 0;
 	private Sprite2D sprite;
 	private NeuralNetwork neuralNetwork;
-	private static NeuralNetworkVisualizer visualizer;
 
 	private static List<blobly> allInstances = new List<blobly>();
 	private double[] outputs;
 	private int score;
+	private static blobly lastWinner;
+	private static float res = 2.5f;
+
+	public float Hunger
+	{
+		get => _hunger;
+		set
+		{
+			{
+				_hunger = value;
+				ChangeColor(); // update color when hunger changes
+			}
+		}
+	}
+
+	public float Shopped_tree
+	{
+		get => _shoppedTree;
+		set => _shoppedTree = value;
+	}
+	public float Wood
+	{
+		get => _wood;
+		set => _wood = value;
+	}
+	public float Fishing_hooks
+	{
+		get => _fishingHooks;
+		set => _fishingHooks = value;
+	}
+	public float Raw_fish
+	{
+		get => _rawFish;
+		set => _rawFish = value;
+	}
+	public float CookedFish
+	{
+		get => _cookedFish;
+		set => _cookedFish = value;
+	}
+	public float Skill_cooking
+	{
+		get => _skillCooking;
+		set => _skillCooking = value;
+	}
+	public float Skill_chopping_tree
+	{
+		get => _skill_chopping_tree;
+		set => _skill_chopping_tree = value;
+	}
+	public float Skill_chopping_wood
+	{
+		get => _skillChoppingWood;
+		set => _skillChoppingWood = value;
+	}
+	public float Skill_fishing
+	{
+		get => _skillFishing;
+		set => _skillFishing = value;
+	}
+	public float Skill_craft_fishing_hooks
+	{
+		get => _skillCraftFishingHooks;
+		set => _skillCraftFishingHooks = value;
+	}
+	
+	public static float Res {
+		get => res;
+		set => res = value;
+	}
 	public NeuralNetwork NeuralNetwork
     {
-
         get => neuralNetwork;
 		set => neuralNetwork = value;
     }
-
-
-	private static blobly lastWinner;
 
 	public static blobly LastWinner
 	{
@@ -59,12 +118,11 @@ public partial class blobly : CharacterBody2D
 		set => score = value;
 	}
 
-// get and set the outputs of the neural network
-public double[] Outputs
-{
-	get => outputs;
-	set => outputs = value;
-}
+	public double[] Outputs
+	{
+		get => outputs;
+		set => outputs = value;
+	}
 
 	public static List<blobly> AllInstances
 	{
@@ -76,7 +134,6 @@ public double[] Outputs
 		allInstances.Add(this);
 		neuralNetwork = new NeuralNetwork(11, 64, 16, 8, 5);
 		outputs = new double[] {0,0,0,0,0};
-		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
 		this.score = -1;
 		this.ZIndex = 10;
 		
@@ -96,7 +153,6 @@ public double[] Outputs
 		allInstances.Add(this);
 		this.neuralNetwork = neuralNetwork;
 		outputs = new double[] {0,0,0,0,0};
-		visualizer = new NeuralNetworkVisualizer(AllInstances[0].NeuralNetwork);
 		this.score = -1;
 		this.ZIndex = 10;
 		
@@ -110,36 +166,6 @@ public double[] Outputs
 		}
 
 	}
-
-	public blobly Clone()
-    {
-        string path = "agent/blobly.tscn";
-        PackedScene packedScene = GD.Load<PackedScene>(path);
-        blobly clone = packedScene.Instantiate<blobly>();
-
-        // Copy properties
-        clone.Hunger = this.Hunger;
-        clone.Shopped_tree = this.Shopped_tree;
-        clone.Wood = this.Wood;
-        clone.Fishing_hooks = this.Fishing_hooks;
-        clone.Raw_fish = this.Raw_fish;
-        clone.CookedFish = this.CookedFish;
-        clone.Skill_cooking = this.Skill_cooking;
-        clone.Skill_chopping_tree = this.Skill_chopping_tree;
-        clone.Skill_chopping_wood = this.Skill_chopping_wood;
-        clone.Skill_fishing = this.Skill_fishing;
-        clone.Skill_craft_fishing_hooks = this.Skill_craft_fishing_hooks;
-
-        // Copy neural network weights
-        clone.NeuralNetwork.CopyWeightsFrom(this.NeuralNetwork, false);
-        clone.Score = this.Score;
-
-        return clone;
-    }
-
-
-
-	
 	
 	public void ChangeColor()
 	{
@@ -156,29 +182,19 @@ public double[] Outputs
 	
 		targetColor = new Color(0.0f + ratio, 1.0f - ratio, 0.0f); // green -> red
 		sprite.Modulate = targetColor;
-		
-		
-		
 
 	}
 
-	public static bool IsHalfPopulationAboveMinimalHunger()
+	public static bool IsAnyBloblyWithInitialScore()
 	{
 
 		blobly[] allBloblys = allInstances.ToArray();
 
-		
-		
-		
 		if (allBloblys.Any(b => b.Score == -1))
 		{
 			return true;
 		}
-		
-		// change z-index of the blobly
 		return false;
-
-		
 	}
 
 	
@@ -191,8 +207,9 @@ public double[] Outputs
 	private Vector2 clickPosition;
 
 	// input for the input layer of the neural network
-public double[] GetInputs()
+public double[] GetNormalizedInputs()
 {
+	// -1 to 1
 	return new double[]
 	{
 		(Hunger-50)/50,
@@ -208,18 +225,6 @@ public double[] GetInputs()
 		(Skill_craft_fishing_hooks-2.5)/2.5
 	};
 }
-
-
-
-
-
-	
-
-	~blobly()
-	{
-		allInstances.Remove(this);
-	}
-
 
 
 	public void Eat(float m)
@@ -316,32 +321,24 @@ public double[] GetInputs()
 		Get_resources(ref _fishingHooks, ref _skillCraftFishingHooks, 2.7f);
 
 	}
-	private static float res = 2.66f;
 	
-	
-	public static float Res {
-		get => res;
-		set => res = value;
-	}
 	public void Cook()
 	{
 		nextPosition = locations.get_position_kitchen();
 		Eat(1.0f);
 		if (Raw_fish < 3 || Wood < 4 || CookedFish > 999)
 		{
-			
 			return;
 		}
 
 		Use_resource(ref _rawFish, 3);
 		Use_resource(ref _wood, 4);
 		Get_resources(ref _cookedFish, ref _skillCooking, res);
-
 	}
 
+// market not yet implemented
 	public void GoToMarket ()
 	{
-
 		List<Action> actions = new List<Action>
 		{
 			Chop_tree,
@@ -351,74 +348,10 @@ public double[] GetInputs()
 			Cook,
 			
 		};
-
 		Random rand = new Random();
 		actions[rand.Next(actions.Count)]();
-		
 	}
 
-	public float Shopped_tree
-	{
-		get => _shoppedTree;
-		set => _shoppedTree = value;
-	}
-	public float Wood
-	{
-		get => _wood;
-		set => _wood = value;
-	}
-	public float Fishing_hooks
-	{
-		get => _fishingHooks;
-		set => _fishingHooks = value;
-	}
-	public float Raw_fish
-	{
-		get => _rawFish;
-		set => _rawFish = value;
-	}
-	public float CookedFish
-	{
-		get => _cookedFish;
-		set => _cookedFish = value;
-	}
-	public float Skill_cooking
-	{
-		get => _skillCooking;
-		set => _skillCooking = value;
-	}
-	public float Skill_chopping_tree
-	{
-		get => _skill_chopping_tree;
-		set => _skill_chopping_tree = value;
-	}
-	public float Skill_chopping_wood
-	{
-		get => _skillChoppingWood;
-		set => _skillChoppingWood = value;
-	}
-	public float Skill_fishing
-	{
-		get => _skillFishing;
-		set => _skillFishing = value;
-	}
-	public float Skill_craft_fishing_hooks
-	{
-		get => _skillCraftFishingHooks;
-		set => _skillCraftFishingHooks = value;
-	}
-
-	public float Hunger
-	{
-		get => _hunger;
-		set
-		{
-			{
-				_hunger = value;
-				ChangeColor(); // update color when hunger changes
-			}
-		}
-	}
 
 	public static float GetAverageValue(Func<blobly, float> selector)
 	{
@@ -459,10 +392,10 @@ public double[] GetInputs()
 
 	public static float GetPopulationSize()
 	{
-		return allInstances.Count;
+		return blobly.AllInstances.Count(b => b.Score == -1);
 	}
 
-	private static float GetAverageOfLowest10Percent(Func<blobly, float> selector)
+	private static float GetAverageOfLowestHalfForInitialScore(Func<blobly, float> selector)
 	{
 		blobly[] sortedBloblys = blobly.AllInstances.OrderBy(b => b.Hunger).ToArray();
 		int lowestHalfPopulation = sortedBloblys.Length;
@@ -472,20 +405,9 @@ public double[] GetInputs()
 		float total = top50.Sum(selector);
 		return total / top50.Count;
 
-
-		/*
-
-		if (allInstances.Count == 0) return 0;
-
-		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.5);
-		var lowest10PercentInstances = allInstances.OrderBy(selector).Take(tenPercent);
-
-		float total = lowest10PercentInstances.Sum(selector);
-		return total / tenPercent;
-		*/
 	}
 
-	private static float GetAverageOfHighest10Percent(Func<blobly, float> selector)
+	private static float GetAverageOfHighestHalfForInitialScore(Func<blobly, float> selector)
 	{
 
 		blobly[] sortedBloblys = blobly.AllInstances.OrderByDescending(b => b.Hunger).ToArray();
@@ -496,18 +418,9 @@ public double[] GetInputs()
 		float total = top50.Sum(selector);
 		return total / top50.Count;
 
-		/*
-		if (allInstances.Count == 0) return 0;
-
-		int tenPercent = (int)Math.Ceiling(allInstances.Count * 0.5);
-		var highest10PercentInstances = allInstances.OrderByDescending(selector).Take(tenPercent);
-
-		float total = highest10PercentInstances.Sum(selector);
-		return total / tenPercent;
-		*/
 	}
 
-	private static float GetAverageOfLowest10Percent2(Func<blobly, float> selector)
+	private static float GetAverageOfLowestHalfForInitialScore2(Func<blobly, float> selector)
 	{
 		var filteredInstances = allInstances.Where(b => b.Score == -1).ToList();
 		if (filteredInstances.Count == 0) return 0;
@@ -519,7 +432,7 @@ public double[] GetInputs()
 		return 0;
 	}
 
-	private static float GetAverageOfHighest10Percent2(Func<blobly, float> selector)
+	private static float GetAverageOfHighestHalfForInitialScore2(Func<blobly, float> selector)
 	{
 
 		var filteredInstances = allInstances.Where(b => b.Score == -1).ToList();
@@ -532,32 +445,32 @@ public double[] GetInputs()
 		return 0;
 	}
 
-	public static float GetAverageOfCookedFishOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.CookedFish);
-	public static float GetAverageOfCookedFishOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.CookedFish);
-	public static float GetAverageOfRawFishOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Raw_fish);
-	public static float GetAverageOfRawFishOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Raw_fish);
-	public static float GetAverageOfHungerOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Hunger);
-	public static float GetAverageOfHungerOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Hunger);
-	public static float GetAverageOfShoppedTreeOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Shopped_tree);
-	public static float GetAverageOfShoppedTreeOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Shopped_tree);
-	public static float GetAverageOfWoodOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Wood);
-	public static float GetAverageOfWoodOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Wood);
-	public static float GetAverageOfFishingHooksOfTheLowest10Percent() => GetAverageOfLowest10Percent(b => b.Fishing_hooks);
-	public static float GetAverageOfFishingHooksOfTheHighest10Percent() => GetAverageOfHighest10Percent(b => b.Fishing_hooks);
+	public static float GetAverageOfCookedFishOfLowestHalfForInitialScore() => GetAverageOfLowestHalfForInitialScore(b => b.CookedFish);
+	public static float GetAverageOfCookedFishOfOfHighestHalfForInitialScore() => GetAverageOfHighestHalfForInitialScore(b => b.CookedFish);
+	public static float GetAverageOfRawFishOfLowestHalfForInitialScore() => GetAverageOfLowestHalfForInitialScore(b => b.Raw_fish);
+	public static float GetAverageOfRawFishOfOfHighestHalfForInitialScore() => GetAverageOfHighestHalfForInitialScore(b => b.Raw_fish);
+	public static float GetAverageOfHungerOfLowestHalfForInitialScore() => GetAverageOfLowestHalfForInitialScore(b => b.Hunger);
+	public static float GetAverageOfHungerOfOfHighestHalfForInitialScore() => GetAverageOfHighestHalfForInitialScore(b => b.Hunger);
+	public static float GetAverageOfShoppedTreeOfLowestHalfForInitialScore() => GetAverageOfLowestHalfForInitialScore(b => b.Shopped_tree);
+	public static float GetAverageOfShoppedTreeOfOfHighestHalfForInitialScore() => GetAverageOfHighestHalfForInitialScore(b => b.Shopped_tree);
+	public static float GetAverageOfWoodOfLowestHalfForInitialScore() => GetAverageOfLowestHalfForInitialScore(b => b.Wood);
+	public static float GetAverageOfWoodOfOfHighestHalfForInitialScore() => GetAverageOfHighestHalfForInitialScore(b => b.Wood);
+	public static float GetAverageOfFishingHooksOfLowestHalfForInitialScore() => GetAverageOfLowestHalfForInitialScore(b => b.Fishing_hooks);
+	public static float GetAverageOfFishingHooksOfOfHighestHalfForInitialScore() => GetAverageOfHighestHalfForInitialScore(b => b.Fishing_hooks);
 
 
-	public static float GetAverageOfCookedFishOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.CookedFish);
-	public static float GetAverageOfCookedFishOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.CookedFish);
-	public static float GetAverageOfRawFishOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Raw_fish);
-	public static float GetAverageOfRawFishOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Raw_fish);
-	public static float GetAverageOfHungerOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Hunger);
-	public static float GetAverageOfHungerOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Hunger);
-	public static float GetAverageOfShoppedTreeOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Shopped_tree);
-	public static float GetAverageOfShoppedTreeOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Shopped_tree);
-	public static float GetAverageOfWoodOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Wood);
-	public static float GetAverageOfWoodOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Wood);
-	public static float GetAverageOfFishingHooksOfTheLowest10Percent2() => GetAverageOfLowest10Percent2(b => b.Fishing_hooks);
-	public static float GetAverageOfFishingHooksOfTheHighest10Percent2() => GetAverageOfHighest10Percent2(b => b.Fishing_hooks);
+	public static float GetAverageOfCookedFishOfLowestHalfForInitialScore2() => GetAverageOfLowestHalfForInitialScore2(b => b.CookedFish);
+	public static float GetAverageOfCookedFishOfOfHighestHalfForInitialScore2() => GetAverageOfHighestHalfForInitialScore2(b => b.CookedFish);
+	public static float GetAverageOfRawFishOfLowestHalfForInitialScore2() => GetAverageOfLowestHalfForInitialScore2(b => b.Raw_fish);
+	public static float GetAverageOfRawFishOfOfHighestHalfForInitialScore2() => GetAverageOfHighestHalfForInitialScore2(b => b.Raw_fish);
+	public static float GetAverageOfHungerOfLowestHalfForInitialScore2() => GetAverageOfLowestHalfForInitialScore2(b => b.Hunger);
+	public static float GetAverageOfHungerOfOfHighestHalfForInitialScore2() => GetAverageOfHighestHalfForInitialScore2(b => b.Hunger);
+	public static float GetAverageOfShoppedTreeOfLowestHalfForInitialScore2() => GetAverageOfLowestHalfForInitialScore2(b => b.Shopped_tree);
+	public static float GetAverageOfShoppedTreeOfOfHighestHalfForInitialScore2() => GetAverageOfHighestHalfForInitialScore2(b => b.Shopped_tree);
+	public static float GetAverageOfWoodOfLowestHalfForInitialScore2() => GetAverageOfLowestHalfForInitialScore2(b => b.Wood);
+	public static float GetAverageOfWoodOfOfHighestHalfForInitialScore2() => GetAverageOfHighestHalfForInitialScore2(b => b.Wood);
+	public static float GetAverageOfFishingHooksOfLowestHalfForInitialScore2() => GetAverageOfLowestHalfForInitialScore2(b => b.Fishing_hooks);
+	public static float GetAverageOfFishingHooksOfOfHighestHalfForInitialScore2() => GetAverageOfHighestHalfForInitialScore2(b => b.Fishing_hooks);
 
 
 	public override void _Ready()
@@ -566,17 +479,15 @@ public double[] GetInputs()
 		ChangeColor();
 		animations = GetNode<AnimationPlayer>("Sprite2D/AnimationPlayer");
 	}
-	public void PerformRandomAction(int score)
+	public void PerformNeuralNetworkAction(int score)
 	{
 		int extra = 0;
 		if (blobly.AllInstances.Count(b => b.Score == -1) == 1)
 		{
 			this.Hunger = 1;
 			extra = 100000;
-
 		}
 		
-
 		if (this.Hunger < 2)
 		{
 			if (this.Score == -1){
@@ -589,11 +500,7 @@ public double[] GetInputs()
 		this.ZIndex = 9;
 		return;
 		}
-		
 
-
-
-		
 		List<Action> actions = new List<Action>
 		{
 			Chop_tree,
@@ -607,20 +514,13 @@ public double[] GetInputs()
 		double[] outputs = this.outputs;
 		int index = Array.IndexOf(outputs, outputs.Max());
 
-		// if highest output is GoToMarket, choose the second highest output
-	
 		actions[index]();
-		// clear the outputs
 		outputs = new double[outputs.Length];
 
-		// Uppdatera neural network inputs och outputs här om det behövs
-		double[] inputs = GetInputs();
+		double[] inputs = GetNormalizedInputs();
 		outputs = neuralNetwork.CalculateOutputs(inputs);
 		this.outputs = outputs;
-		// index of the highest output
-		//SetOutputs(outputs);
-
-		// Uppdatera position
+	
 		
 	}
 
@@ -661,39 +561,8 @@ public double[] GetInputs()
 	{
 		if (Input.IsActionJustPressed("left_click"))
 		{
-			List<Action> actions = new List<Action>
-			{
-				Chop_tree,
-				Chop_wood,
-				Fish,
-				Craft_fishing_hooks,
-				Cook
-			};
-
-			// perform random action when clicked
-
-			Random rand = new Random();
-			actions[rand.Next(actions.Count)]();
-			actions[rand.Next(actions.Count)]();
-			actions[rand.Next(actions.Count)]();
-			actions[rand.Next(actions.Count)]();
-			actions[rand.Next(actions.Count)]();
-			Random randy = new Random();
-			
-			
-			
-
-			double[] inputs = GetInputs();
-		double[] outputs = neuralNetwork.CalculateOutputs(inputs);
-		
-		//SetOutputs(outputs);
-			//GD.Print("Outputs: " + string.Join(", ", outputs));
-			
-			
-						
 
 			clickPosition = nextPosition;
-
 		}
 
 		if (Position.DistanceTo(clickPosition) > 100)
@@ -708,11 +577,6 @@ public double[] GetInputs()
 
 	}
 
-    internal void Clear()
-    {
-        // clear the last winner
-		lastWinner = null;
-    }
 }
 
 

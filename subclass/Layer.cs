@@ -39,19 +39,13 @@ public class Layer
 	{
 		this.numInputsNodes = numInputsNodes;
 		this.numOutputNodes = numOutputNodes;
-		this.mutationRate = 0.1f;
+		this.mutationRate = 0.002f;
 
 		weights = new double[numInputsNodes, numOutputNodes];
 		biases = new double[numOutputNodes];
 
 		InitializeWeightsAndBiases();
 		this.activationType = activationType;
-	}
-
-	 public float MutationRate
-	{
-		get => mutationRate;
-		set => mutationRate = value;
 	}
 
 	public int NumInputsNodes
@@ -100,12 +94,6 @@ public class Layer
         }
     }
 
-	// Sigmoid
-	public double ActivationFunction(double weightedInput)
-	{
-		return 1.0 / (1.0 + Math.Exp(-weightedInput));
-	}
-
    private void InitializeWeightsAndBiases()
 {
 	Random random = new Random();
@@ -113,13 +101,13 @@ public class Layer
 	{
 		for (int j = 0; j < numOutputNodes; j++)
 		{
-			weights[i, j] = random.NextDouble() * 2 - 1; // Initialize weights between -1 and 1
+			weights[i, j] = random.NextDouble() * 2 - 1; 
 		}
 	}
 
 	for (int j = 0; j < numOutputNodes; j++)
 	{
-		biases[j] = random.NextDouble() * 2 - 1; // Initialize biases between -1 and 1
+		biases[j] = random.NextDouble() * 2 - 1; 
 	}
 }
 
@@ -158,7 +146,7 @@ public void Mutate()
 		throw new ArgumentException("Layers must have the same dimensions to copy weights.");
 	}
 
-	// Copy weights
+	// copy weights
 	for (int i = 0; i < numInputsNodes; i++)
 	{
 		for (int j = 0; j < numOutputNodes; j++)
@@ -167,7 +155,7 @@ public void Mutate()
 		}
 	}
 
-	// Copy biases
+	// copy biases
 	for (int i = 0; i < numOutputNodes; i++)
 	{
 		this.biases[i] = other.biases[i];

@@ -102,7 +102,6 @@ public partial class Serialization
         NeuralNetwork neuralNetwork = new NeuralNetwork(11, 64, 16, 8, 5);
         string filePath = $"{fileName}.json";
 
-        
 
 
         try
@@ -132,7 +131,7 @@ public partial class Serialization
                     }
                     else
                     {
-                        GD.Print($"Warning: Data for layer_{i} not found in JSON.");
+                        GD.Print($"Data for layer_{i} not found in kson.");
                     }
                 }
             }
