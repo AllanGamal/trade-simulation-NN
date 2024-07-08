@@ -39,7 +39,7 @@ public class Layer
 	{
 		this.numInputsNodes = numInputsNodes;
 		this.numOutputNodes = numOutputNodes;
-		this.mutationRate = 0.002f;
+		this.mutationRate = 0.05f;
 
 		weights = new double[numInputsNodes, numOutputNodes];
 		biases = new double[numOutputNodes];

@@ -16,7 +16,7 @@ public partial class blobly : CharacterBody2D
 	private float _wood = 0;
 	private float _fishingHooks = 0;
 	private float _rawFish = 0;
-	private float _cookedFish = 70;
+	private float _cookedFish = 80;
 
 	// skills
 	private float _skillCooking = 0;
@@ -31,7 +31,7 @@ public partial class blobly : CharacterBody2D
 	private double[] outputs;
 	private int score;
 	private static blobly lastWinner;
-	private static float res = 2.5f;
+	private static float res = 3f;
 
 	public float Hunger
 	{

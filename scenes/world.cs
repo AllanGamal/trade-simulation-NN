@@ -35,11 +35,24 @@ public partial class world : Node2D
 	// spawn a blobly at a random location
 	public void spawn_blobly()
 	{
+		SpawnNewBloblyMode();
+	}
+
+	private void SpawnNewBloblyMode()
+	{
 		string path = "agent/blobly.tscn";
 		PackedScene packedScene = GD.Load<PackedScene>(path);
-		
 		for (int i = 0; i < 999; i++)
 		{
+			blobly blobly = packedScene.Instantiate<blobly>();
+			CallDeferred("add_child", blobly);
+		}
+	
+	}
+
+	private void SpawnCopiesMode() {
+		string path = "agent/blobly.tscn";
+		PackedScene packedScene = GD.Load<PackedScene>(path);
 			for (int j = 0; j < 10; j++) {
 				if (blobly.AllInstances.Count < 999)
 				{
@@ -51,7 +64,6 @@ public partial class world : Node2D
 					CallDeferred("add_child", childBlobly);
 				}
 			}
-		}
 	}
 
 	public override void _Ready()
@@ -66,7 +78,7 @@ public partial class world : Node2D
 			blobly.GetAverageOfCookedFishOfOfHighestHalfForInitialScore, blobly.GetAverageCookedFish, blobly.GetAverageOfCookedFishOfLowestHalfForInitialScore);
 		rawFishChart = InstantiateThreeCharts(new Vector2(1883, 350), "Raw Fish",new Vector2(600, 250),
 			blobly.GetAverageOfRawFishOfOfHighestHalfForInitialScore, blobly.GetAverageRawFish, blobly.GetAverageOfRawFishOfLowestHalfForInitialScore);
-		shoppedTreeChart = InstantiateThreeCharts(new Vector2(1281, 700), "Shopped Trees",new Vector2(600, 250),
+		shoppedTreeChart = InstantiateThreeCharts(new Vector2(1281, 700), "Chopped Trees",new Vector2(600, 250),
 			blobly.GetAverageOfShoppedTreeOfOfHighestHalfForInitialScore, blobly.GetAverageShoppedTree, blobly.GetAverageOfShoppedTreeOfLowestHalfForInitialScore);
 		woodChart = InstantiateThreeCharts(new Vector2(1883, 700), "Wood", new Vector2(600, 250),
 			blobly.GetAverageOfWoodOfOfHighestHalfForInitialScore, blobly.GetAverageWood, blobly.GetAverageOfWoodOfLowestHalfForInitialScore);
@@ -79,7 +91,7 @@ public partial class world : Node2D
 			blobly.GetAverageCookedFish2);
 		rawFishChart2 = InstantiateOneChart(new Vector2(428, 870), "Raw Fish",new Vector2(425, 125),
 			blobly.GetAverageRawFish2);
-		shoppedTreeChart2 = InstantiateOneChart(new Vector2(856, 724), "Shopped Trees",new Vector2(425, 125),
+		shoppedTreeChart2 = InstantiateOneChart(new Vector2(856, 724), "Chopped Trees",new Vector2(425, 125),
 			blobly.GetAverageShoppedTree2);
 		woodChart2 = InstantiateOneChart(new Vector2(856, 870), "Wood", new Vector2(425, 125),
 			blobly.GetAverageWood2);	
@@ -207,15 +219,15 @@ private void OnActionTimerTimeout()
 		blobly.PerformNeuralNetworkAction(count);
 	}
 
-	if (!blobly.IsAnyBloblyWithInitialScore() || count > 8000)
+	if (!blobly.IsAnyBloblyWithInitialScore() || count > 2000)
 	{
 		
 		GD.Print("----------------------------");
 		if (count > highestCount){
 			highestCount=count;
 		}
-		if (count > 8000) {
-		GD.Print("Fitness above 8000!: " + count);
+		if (count > 2000) {
+		GD.Print("Fitness above 2000!: " + count);
 		if (blobly.Res > 2.53f){
 			
 		blobly.Res = blobly.Res*0.990f;
@@ -228,8 +240,8 @@ private void OnActionTimerTimeout()
 		iteration++;
 		GD.Print("Iteration: " + iteration);
 		GD.Print("Res: " + blobly.Res);
-		GD.Print("Count: " + count);
-		GD.Print("Highest Count: " + highestCount);
+		GD.Print("Fitness: " + count);
+		GD.Print("Highest Fitness: " + highestCount);
 		count = 0;
 
 		ReproduceTopAndRemoveOthers();
@@ -269,7 +281,7 @@ private void ReproduceTopAndRemoveOthers()
     int halfPopulation = sortedBloblys.Length;
 
     
-    var top30 = sortedBloblys.Take((int)(halfPopulation * 0.35f)).ToList();
+    var top30 = sortedBloblys.Take((int)(halfPopulation * 0.4f)).ToList();
 
     // remove all instances
     foreach (var blobly in blobly.AllInstances.ToList())
@@ -348,7 +360,7 @@ private blobly CreateNewBlobly(blobly parentBlobly, bool mutate)
     newBlobly.Wood = 0;
     newBlobly.Fishing_hooks = 0;
     newBlobly.Raw_fish = 0;
-    newBlobly.CookedFish = 70;
+    newBlobly.CookedFish = 80;
     newBlobly.Skill_cooking = 0;
     newBlobly.Skill_chopping_tree = 0;
     newBlobly.Skill_chopping_wood = 0;
