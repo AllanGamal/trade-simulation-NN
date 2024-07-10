@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://d2b2ikuubsw3p"]
+[gd_scene load_steps=26 format=3 uid="uid://d2b2ikuubsw3p"]
 
 [ext_resource type="Script" path="res://scenes/world.cs" id="1_5idll"]
 [ext_resource type="Texture2D" uid="uid://cbmppb51dryag" path="res://art/Grass.png" id="2_v8m6r"]
@@ -13,8 +13,6 @@
 [ext_resource type="Texture2D" uid="uid://bf8g2v8pt0s5x" path="res://art/Fences.png" id="8_cyvi1"]
 [ext_resource type="Texture2D" uid="uid://xb17eaaj8seu" path="res://art/!cauldren.png" id="8_uxiwx"]
 [ext_resource type="PackedScene" uid="uid://niek8sp2h33q" path="res://agent/blobly.tscn" id="12_rollk"]
-[ext_resource type="Script" path="res://subclass/NeuralNetworkVisualizer.cs" id="15_514vh"]
-[ext_resource type="Script" path="res://subclass/actionTimer.cs" id="16_6bueg"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_af04q"]
 texture = ExtResource("2_v8m6r")
@@ -2811,10 +2809,3 @@ text = "Fishing Lake"
 
 [node name="Blobly" parent="." instance=ExtResource("12_rollk")]
 position = Vector2(550, 363)
-
-[node name="NeuralNetworkVisualizer" type="Node2D" parent="."]
-z_index = 1
-script = ExtResource("15_514vh")
-
-[node name="actionTimer" type="Node2D" parent="."]
-script = ExtResource("16_6bueg")
