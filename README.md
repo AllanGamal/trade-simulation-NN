@@ -1,7 +1,8 @@
 ## Purpose
 
 **Learning and Building Neural Networks**: To gain a deep understanding of how to build simple Convolutional Neural Networks (CNN) from scratch. 
-**Simulation of Evolutionary Behavior**: To create a simulation where autonomous agents, called Bloblys, evolve their behavior over time through iterative processes involving genetic algorithms and neural networks. This allows us to observe how these creatures adapt and evolve in their environment.
+**Simulation of Evolutionary Behavior**: To create a simulation where autonomous agents, called Bloblys, evolve their behavior over time through iterative processes involving genetic algorithms and neural networks. This allows us to observe how these creatures adapt and evolve in their environment. 
+** GIF below takes a while to load**
 
 ![Blobly Simulation](images/simulation.gif)
 
